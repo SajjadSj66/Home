@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نهایی کردن خرید — خانه لوازم</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header id="site-header" class="site-header"></header>
+
+<div class="form-page">
+  <div class="form-card wide" id="checkout-form-wrap">
+    <span class="eyebrow">مرحله‌ی آخر</span>
+    <h1>ثبت آدرس و پرداخت</h1>
+
+    <div class="form-error" id="checkout-error"></div>
+
+    <form id="checkout-form">
+      <div class="field">
+        <label for="address">آدرس کامل تحویل کالا</label>
+        <textarea id="address" required placeholder="استان، شهر، خیابان، پلاک، واحد..."></textarea>
+      </div>
+      <div class="field">
+        <label for="phone">شماره تماس</label>
+        <input type="tel" id="phone" required placeholder="09xxxxxxxxx">
+      </div>
+
+      <div class="row" style="display:flex;justify-content:space-between;margin:20px 0;font-weight:700;">
+        <span>مبلغ قابل پرداخت</span>
+        <span id="checkout-total">۰ تومان</span>
+      </div>
+
+      <button type="submit" class="btn copper block" id="submit-order-btn">ثبت نهایی سفارش</button>
+    </form>
+  </div>
+
+  <div class="form-card" id="checkout-success" style="display:none; text-align:center;">
+    <h1>سفارش با موفقیت ثبت شد ✅</h1>
+    <p style="color:var(--muted)">شماره سفارش شما: <b id="order-id"></b></p>
+    <a href="index.html" class="btn primary block" style="margin-top:16px">بازگشت به فروشگاه</a>
+  </div>
+</div>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/store.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/checkout.js"></script>
+</body>
+</html>

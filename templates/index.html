@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خانه لوازم — فروشگاه لوازم خانگی</title>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<header id="site-header" class="site-header"></header>
+
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <span class="eyebrow">فروشگاه آنلاین لوازم خانگی</span>
+      <h1>خانه‌ات را با کیفیتی که به آن اعتماد داری تجهیز کن</h1>
+      <p>یخچال، ماشین لباسشویی، اجاق گاز و ده‌ها لوازم خانگی دیگر، با گارانتی اصالت کالا و ارسال به سراسر کشور.</p>
+      <div style="margin-top:18px"><a href="#catalog" class="btn primary">مشاهده‌ی محصولات</a></div>
+    </div>
+    <div class="spec-sheet">
+      <div class="row"><span>ارسال</span><b>به سراسر کشور</b></div>
+      <div class="row"><span>گارانتی</span><b>اصالت و سلامت فیزیکی کالا</b></div>
+      <div class="row"><span>پرداخت</span><b>اقساطی / نقدی</b></div>
+      <div class="row"><span>پشتیبانی</span><b>۷ روز هفته</b></div>
+    </div>
+  </div>
+</section>
+
+<main class="container" id="catalog">
+  <div class="category-strip" id="category-strip"></div>
+
+  <div id="demo-note" class="form-error" style="display:none;">
+    اتصال به بک‌اند FastAPI برقرار نشد — در حال حاضر داده‌ی نمایشی دیده می‌شود. آدرس API رو در js/config.js تنظیم کن.
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="search-input" placeholder="جستجوی محصول...">
+  </div>
+
+  <div class="product-grid" id="product-grid"></div>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="{% static 'js/config.js' %}"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+<script src="{% static 'js/store.js' %}"></script>
+<script src="{% static 'js/layout.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
