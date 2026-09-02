@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد من — خانه لوازم</title>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<header id="site-header" class="site-header"></header>
+
+<div class="dash-layout">
+  <aside class="dash-side">
+    <div class="dash-user">
+      <div class="dash-avatar" id="dash-avatar">کا</div>
+      <div class="phone" id="dash-phone">—</div>
+    </div>
+    <nav class="dash-nav">
+      <a href="#overview" class="active">🏠 میز کار</a>
+      <a href="#orders">📦 سفارش‌های من</a>
+      <a href="cart.html">🛒 سبد خرید</a>
+      <button type="button" id="logout-btn">🚪 خروج از حساب</button>
+    </nav>
+  </aside>
+
+  <main class="dash-main">
+    <div class="welcome-banner" id="overview">
+      <div>
+        <h2 id="greeting-line">سلام 👋</h2>
+        <p>خوشحالیم دوباره تو خانه‌ی لوازم آشپزخانه‌ای‌ت رو می‌بینیم.</p>
+      </div>
+      <a href="index.html" class="btn copper">مشاهده‌ی محصولات جدید</a>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">تعداد کل سفارش‌ها</div>
+        <div class="stat-value" id="stat-orders">۰</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">مجموع خرید</div>
+        <div class="stat-value" id="stat-total">۰ تومان</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">سفارش در حال پردازش</div>
+        <div class="stat-value" id="stat-processing">۰</div>
+      </div>
+    </div>
+
+    <div id="orders">
+      <div class="section-title">
+        <h2 style="margin:0;font-size:1.05rem">سفارش‌های اخیر</h2>
+      </div>
+      <div id="orders-list"></div>
+    </div>
+  </main>
+</div>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="{% static 'js/auth.js' %}"></script>
+<script src="{% static 'js/store.js' %}"></script>
+<script src="{% static 'js/layout.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

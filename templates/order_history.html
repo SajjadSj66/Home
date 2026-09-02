@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}سفارش‌های من — خانه لوازم{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 style="margin-top:28px">سفارش‌های من</h1>
+
+  {% if orders %}
+    <div style="margin-top:18px">
+      {% for order in orders %}
+        <a href="{% url 'order_success' order_id=order.id %}" class="order-card" style="text-decoration:none">
+          <div>
+            <div style="font-weight:600">سفارش #{{ order.id }}</div>
+            <div class="order-meta">
+              {{ order.created_at|date:"Y/m/d" }}
+              —
+              {% for item in order.items.all %}{{ item.product.title }}{% if not forloop.last %}، {% endif %}{% endfor %}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="price">{{ order.total_price|floatformat:0 }} تومان</span>
+            <span class="status-pill {{ order.status }}">{{ order.get_status_display }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state" style="margin-top:20px">
+      هنوز سفارشی ثبت نکردی.
+      <a href="{% url 'product_list' %}" style="color:var(--primary)">برو به فروشگاه</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

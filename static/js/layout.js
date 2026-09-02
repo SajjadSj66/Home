@@ -21,12 +21,13 @@ function renderLayout(activePage) {
         <nav class="nav-links">
           ${navItem("index.html", "محصولات", "home")}
           ${navItem("cart.html", "سبد خرید", "cart")}
+          ${loggedIn ? navItem("dashboard.html", "داشبورد من", "dashboard") : ""}
           ${admin ? navItem("admin.html", "پنل ادمین", "admin") : ""}
         </nav>
         <div class="header-actions">
           ${
             loggedIn
-              ? `<span style="font-size:.85rem;color:var(--muted)">سلام، ${user?.full_name || "کاربر"}</span>
+              ? `<span style="font-size:.85rem;color:var(--muted);direction:ltr">${user?.phone || ""}</span>
                  <button class="btn ghost sm" onclick="logout()">خروج</button>`
               : `<a class="btn ghost sm" href="login.html">ورود</a>`
           }

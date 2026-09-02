@@ -3,51 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ثبت‌نام — خانه لوازم</title>
-<link rel="stylesheet" href="css/style.css">
+<title>ورود و ثبت‌نام — وست‌لایف</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg:#F2F3EF; --surface:#FFFFFF; --ink:#1B2420; --muted:#667066; --line:#DDE1D9;
+  --primary:#0E7C7B; --primary-dark:#0A5F5E; --primary-soft:#E4F1F0;
+  --copper:#C17817; --copper-soft:#FBEEDE; --danger:#C23B3B; --success:#1E8E4E;
+  --e1:#1E8E4E; --e2:#59A93F; --e3:#A9C23F; --e4:#F2C12E; --e5:#F0932B; --e6:#E85D33; --e7:#D8322A;
+  --radius:8px; --font-ui:'Vazirmatn',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+}
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-ui); direction:rtl; line-height:1.7; }
+button{ cursor:pointer; font-family:inherit; }
+input{ font-family:inherit; }
+
+.auth-page{ min-height:100vh; display:grid; grid-template-columns:1.05fr 1fr; }
+
+/* ---------- پنل تصویری سمت چپ ---------- */
+.auth-illustration{
+  position:relative; overflow:hidden; padding:56px 48px;
+  background:radial-gradient(circle at 20% 15%, #12908F 0%, var(--primary-dark) 55%, #073F3E 100%);
+  color:#fff; display:flex; flex-direction:column; justify-content:center;
+}
+.auth-illustration::before{
+  content:""; position:absolute; inset:0; opacity:.12;
+  background-image:radial-gradient(#fff 1px, transparent 1px);
+  background-size:22px 22px;
+}
+.floaty{ position:absolute; font-size:2rem; opacity:.9; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); animation:floaty 6s ease-in-out infinite; }
+.floaty.f1{ top:12%; left:12%; animation-delay:0s; }
+.floaty.f2{ top:22%; right:16%; animation-delay:1.2s; font-size:1.6rem; }
+.floaty.f3{ bottom:30%; left:20%; animation-delay:2.1s; font-size:1.8rem; }
+.floaty.f4{ bottom:14%; right:22%; animation-delay:.6s; font-size:2.2rem; }
+@keyframes floaty{ 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-14px) rotate(6deg); } }
+
+.illu-content{ position:relative; z-index:1; max-width:420px; }
+.illu-content .eyebrow{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; opacity:.75; text-transform:uppercase; }
+.illu-content h1{ font-size:1.9rem; line-height:1.5; margin:10px 0 14px; }
+.illu-content p{ opacity:.85; font-size:.95rem; margin:0 0 26px; }
+
+.illu-checklist{ list-style:none; margin:0 0 30px; padding:0; display:flex; flex-direction:column; gap:12px; }
+.illu-checklist li{ display:flex; align-items:center; gap:10px; font-size:.9rem; opacity:.92; }
+.illu-checklist .tick{
+  width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.15);
+  display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0;
+}
+
+.illu-energy{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:var(--radius); padding:14px 16px; }
+.illu-energy .track{ display:flex; height:8px; border-radius:4px; overflow:hidden; margin-bottom:8px; }
+.illu-energy .track span{ flex:1; }
+.illu-energy .track span:nth-child(1){ background:var(--e1); } .illu-energy .track span:nth-child(2){ background:var(--e2); }
+.illu-energy .track span:nth-child(3){ background:var(--e3); } .illu-energy .track span:nth-child(4){ background:var(--e4); }
+.illu-energy .track span:nth-child(5){ background:var(--e5); } .illu-energy .track span:nth-child(6){ background:var(--e6); }
+.illu-energy .track span:nth-child(7){ background:var(--e7); }
+.illu-energy small{ font-family:var(--font-mono); font-size:.72rem; opacity:.8; }
+
+/* ---------- ستون فرم سمت راست ---------- */
+.auth-main{ display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+.auth-card{ width:100%; max-width:400px; }
+
+.brand-row{ display:flex; align-items:center; gap:10px; margin-bottom:32px; font-weight:800; }
+.brand-row .mark{ width:32px; height:32px; border-radius:4px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:.8rem; }
+
+/* نشانگر مراحل */
+.step-indicator{ display:flex; align-items:center; gap:8px; margin-bottom:28px; }
+.step-dot{
+  width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:.8rem; font-weight:700; border:2px solid var(--line); color:var(--muted); background:var(--surface);
+  flex-shrink:0; transition:all .2s ease;
+}
+.step-dot.done{ background:var(--primary); border-color:var(--primary); color:#fff; }
+.step-dot.active{ border-color:var(--primary); color:var(--primary-dark); }
+.step-line{ flex:1; height:2px; background:var(--line); position:relative; }
+.step-line.done::after{ content:""; position:absolute; inset:0; background:var(--primary); }
+.step-label{ font-size:.72rem; color:var(--muted); }
+
+.auth-card h1{ font-size:1.4rem; margin:0 0 6px; }
+.auth-card .sub{ color:var(--muted); font-size:.9rem; margin:0 0 24px; }
+.auth-card .sub b{ font-family:var(--font-mono); color:var(--ink); direction:ltr; display:inline-block; }
+
+/* پیام‌های جنگو */
+.messages{ list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:8px; }
+.messages li{ border-radius:var(--radius); padding:10px 14px; font-size:.85rem; border:1px solid transparent; }
+.messages li.error{ background:#FBEAEA; color:var(--danger); border-color:#F3C9C9; }
+.messages li.success{ background:#EAF7EE; color:var(--success); border-color:#CBEBD3; }
+.messages li.info, .messages li.warning{ background:var(--copper-soft); color:var(--copper); border-color:#EFD5AE; }
+
+.field{ margin-bottom:18px; }
+.field label{ display:block; font-size:.85rem; color:var(--muted); margin-bottom:8px; }
+.field input[type="text"], .field input[type="tel"]{
+  width:100%; border:1.5px solid var(--line); border-radius:var(--radius); padding:13px 14px;
+  background:var(--bg); font-size:1rem; direction:ltr; text-align:right; transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+.field-error{ color:var(--danger); font-size:.8rem; margin-top:6px; }
+
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  border:none; border-radius:var(--radius); padding:14px 18px; font-weight:700; font-size:.95rem;
+  background:var(--primary); color:#fff; transition:transform .12s ease, box-shadow .12s ease, opacity .15s;
+}
+.btn:hover{ box-shadow:0 8px 20px rgba(14,124,123,.28); transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); }
+.btn[disabled]{ opacity:.5; cursor:not-allowed; box-shadow:none; transform:none; }
+
+/* کادرهای کد تایید */
+.otp-boxes{ display:flex; gap:10px; justify-content:space-between; direction:ltr; margin:8px 0 14px; }
+.otp-boxes.shake-once{ animation:shakeGroup .35s ease; }
+@keyframes shakeGroup{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); } }
+.otp-box{
+  width:100%; aspect-ratio:1/1; max-width:54px; text-align:center;
+  font-family:var(--font-mono); font-size:1.4rem; font-weight:700;
+  border:1.5px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);
+  transition:border-color .15s, box-shadow .15s;
+}
+.otp-box:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+.otp-box.filled{ border-color:var(--primary-dark); background:var(--surface); }
+
+.countdown-row{ display:flex; justify-content:space-between; align-items:center; font-size:.83rem; color:var(--muted); margin:2px 0 20px; }
+.countdown-row #countdown-label{ font-family:var(--font-mono); }
+.resend-btn{
+  background:none; border:none; padding:0; font-size:.83rem; font-weight:700; color:var(--primary-dark); cursor:pointer;
+}
+.resend-btn[disabled]{ color:var(--muted); cursor:not-allowed; }
+
+.change-number{ display:block; text-align:center; margin-top:16px; font-size:.85rem; color:var(--muted); text-decoration:none; }
+.change-number:hover{ color:var(--ink); }
+
+/* ---------- ریسپانسیو ---------- */
+@media (max-width: 900px){
+  .auth-page{ grid-template-columns:1fr; }
+  .auth-illustration{ display:none; }
+  .auth-main{ padding:32px 20px; }
+}
+@media (max-width: 380px){
+  .otp-boxes{ gap:6px; }
+  .otp-box{ font-size:1.1rem; max-width:44px; }
+}
+</style>
 </head>
 <body>
 
-<header id="site-header" class="site-header"></header>
+<div class="auth-page">
 
-<div class="form-page">
-  <div class="form-card">
-    <span class="eyebrow">حساب کاربری</span>
-    <h1>ساخت حساب جدید</h1>
+  <aside class="auth-illustration">
+    <span class="floaty f1">🍳</span>
+    <span class="floaty f2">🫖</span>
+    <span class="floaty f3">🥄</span>
+    <span class="floaty f4">🥘</span>
 
-    <div class="form-error" id="auth-error"></div>
+    <div class="illu-content">
+      <span class="eyebrow">وست‌ لایف</span>
+      <h1>به آشپزخانه‌ی هوشمندت خوش اومدی</h1>
+      <p>با شماره موبایلت وارد شو، سریع و بدون رمز عبور — کد تایید رو برات پیامک می‌کنیم.</p>
 
-    <form id="register-form">
-      <div class="field">
-        <label for="full_name">نام و نام خانوادگی</label>
-        <input type="text" id="full_name" required>
-      </div>
-      <div class="field">
-        <label for="email">ایمیل</label>
-        <input type="email" id="email" required>
-      </div>
-      <div class="field">
-        <label for="password">رمز عبور</label>
-        <input type="password" id="password" required minlength="6">
-      </div>
-      <div class="field">
-        <label for="password2">تکرار رمز عبور</label>
-        <input type="password" id="password2" required minlength="6">
-      </div>
-      <button type="submit" class="btn primary block" id="auth-submit-btn">ثبت‌نام</button>
-    </form>
+      <ul class="illu-checklist">
+        <li><span class="tick">✓</span> ارسال به سراسر کشور</li>
+        <li><span class="tick">✓</span> گارانتی اصالت کالا</li>
+        <li><span class="tick">✓</span> پرداخت امن و اقساطی</li>
+        <li><span class="tick">✓</span> پشتیبانی ۷ روز هفته</li>
+      </ul>
 
-    <p class="form-note">حساب داری؟ <a href="login.html" style="color:var(--primary)">وارد شو</a></p>
-  </div>
+      <div class="illu-energy">
+        <div class="track">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <small>کیفیتی که قابل اندازه‌گیریه، نه فقط یه شعار</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="brand-row"><span class="mark">و.ل</span>وست‌لایف</div>
+
+      <div class="step-indicator">
+        <div class="step-dot {% if step == 'otp' %}done{% else %}active{% endif %}">۱</div>
+        <div class="step-line {% if step == 'otp' %}done{% endif %}"></div>
+        <div class="step-dot {% if step == 'otp' %}active{% endif %}">۲</div>
+      </div>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if step == "otp" %}
+
+        <h1>کد تایید رو وارد کن</h1>
+        <p class="sub">کد ۶ رقمی به شماره <b>{{ mobile|slice:":4" }}***{{ mobile|slice:"-4:" }}</b> پیامک شد.</p>
+
+        <form method="post" id="otp-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="otp" id="otp-value">
+
+          <div class="otp-boxes {% for m in messages %}{% if 'error' in m.tags %}shake-once{% endif %}{% endfor %}" id="otp-boxes">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" autofocus>
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          </div>
+          {% if form.otp.errors %}
+            <div class="field-error">{{ form.otp.errors|join:" " }}</div>
+          {% endif %}
+
+          <div class="countdown-row">
+            <span>کد رو دریافت نکردی؟</span>
+            <span>
+              <button type="submit" name="resend" value="1" class="resend-btn" id="resend-btn"
+                {% if cooldown_seconds > 0 %}disabled{% endif %}>ارسال مجدد کد</button>
+              <span id="countdown-label"></span>
+            </span>
+          </div>
+
+          <button type="submit" class="btn" id="verify-btn">تایید و ورود ←</button>
+        </form>
+
+        <script>
+          (function () {
+            const boxes = Array.from(document.querySelectorAll(".otp-box"));
+            const hidden = document.getElementById("otp-value");
+            const form = document.getElementById("otp-form");
+            const resendBtn = document.getElementById("resend-btn");
+            const countdownLabel = document.getElementById("countdown-label");
+            let cooldown = {{ cooldown_seconds|default:0 }};
+
+            function currentValue() {
+              return boxes.map(b => b.value).join("");
+            }
+
+            function trySubmit() {
+              const value = currentValue();
+              hidden.value = value;
+              if (value.length === boxes.length) {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+              }
+            }
+
+            boxes.forEach((box, idx) => {
+              box.addEventListener("input", () => {
+                box.value = box.value.replace(/[^0-9]/g, "").slice(0, 1);
+                box.classList.toggle("filled", !!box.value);
+                if (box.value && idx < boxes.length - 1) boxes[idx + 1].focus();
+                trySubmit();
+              });
+              box.addEventListener("keydown", e => {
+                if (e.key === "Backspace" && !box.value && idx > 0) boxes[idx - 1].focus();
+              });
+              box.addEventListener("paste", e => {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData("text").replace(/[^0-9]/g, "");
+                if (!text) return;
+                text.split("").slice(0, boxes.length).forEach((ch, i) => {
+                  boxes[i].value = ch;
+                  boxes[i].classList.add("filled");
+                });
+                boxes[Math.min(text.length, boxes.length - 1)].focus();
+                trySubmit();
+              });
+            });
+
+            function tick() {
+              if (cooldown <= 0) {
+                resendBtn.disabled = false;
+                countdownLabel.textContent = "";
+                return;
+              }
+              const m = String(Math.floor(cooldown / 60)).padStart(2, "0");
+              const s = String(cooldown % 60).padStart(2, "0");
+              countdownLabel.textContent = `${m}:${s}`;
+              cooldown--;
+              setTimeout(tick, 1000);
+            }
+            tick();
+          })();
+        </script>
+
+      {% else %}
+
+        <h1>خوش اومدی 👋</h1>
+        <p class="sub">شماره موبایلت رو وارد کن تا کد تایید برات پیامک بشه.</p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label for="{{ form.mobile.id_for_label }}">شماره موبایل</label>
+            {{ form.mobile }}
+            {% if form.mobile.errors %}
+              <div class="field-error">{{ form.mobile.errors|join:" " }}</div>
+            {% endif %}
+          </div>
+          <button type="submit" class="btn">دریافت کد تایید ←</button>
+        </form>
+
+      {% endif %}
+    </div>
+  </main>
+
 </div>
-
-<footer id="site-footer" class="site-footer"></footer>
-
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/store.js"></script>
-<script src="js/layout.js"></script>
-<script src="js/auth-forms.js"></script>
 </body>
 </html>

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}سبد خرید — خانه لوازم{% endblock %}
+{% block nav_cart %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 style="margin-top:28px">سبد خرید</h1>
+
+  <div class="cart-layout">
+    <div>
+      {% if items %}
+        {% for item in items %}
+          <div class="cart-item">
+            <div class="thumb">
+              {% if item.product.main_image %}
+                <img src="{{ item.product.main_image.url }}" alt="{{ item.product.title }}">
+              {% endif %}
+            </div>
+            <div>
+              <h3 style="margin:0 0 4px;font-size:.95rem">
+                <a href="{% url 'product_detail' slug=item.product.slug %}">{{ item.product.title }}</a>
+              </h3>
+              <span class="price">{{ item.product.final_price|floatformat:0 }} تومان</span>
+
+              <div class="qty-row">
+                <form method="post" action="{% url 'cart_update' item_id=item.id %}" style="display:flex;align-items:center;gap:10px">
+                  {% csrf_token %}
+                  <div class="stepper">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" style="width:52px;text-align:center;border:none;background:var(--bg);font-family:var(--font-mono)">
+                  </div>
+                  <button type="submit" class="btn ghost sm">به‌روزرسانی</button>
+                </form>
+                <form method="post" action="{% url 'cart_remove' item_id=item.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="remove-link">حذف</button>
+                </form>
+              </div>
+            </div>
+            <div class="price">{{ item.subtotal|floatformat:0 }} تومان</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          سبد خرید شما خالیه.
+          <a href="{% url 'product_list' %}" style="color:var(--primary)">برو به فروشگاه</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="summary-card">
+      <h2 style="font-size:1.05rem">خلاصه سفارش</h2>
+      <div class="row"><span>تعداد کالاها</span><span>{{ cart.total_quantity }}</span></div>
+      <div class="row total"><span>مبلغ قابل پرداخت</span><span>{{ cart.total_price|floatformat:0 }} تومان</span></div>
+      {% if items %}
+        <a href="{% url 'checkout' %}" class="btn primary block" style="margin-top:14px">ادامه‌ی خرید</a>
+      {% else %}
+        <button class="btn block" disabled style="margin-top:14px">ادامه‌ی خرید</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

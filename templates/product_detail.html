@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} — خانه لوازم{% endblock %}
+{% block nav_products %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="product-view">
+
+    <div class="product-gallery">
+      <div class="thumb">
+        {% if product.main_image %}
+          <img src="{{ product.main_image.url }}" alt="{{ product.title }}">
+        {% else %}
+          <span style="color:var(--muted)">بدون تصویر</span>
+        {% endif %}
+      </div>
+      {% if product.images.all %}
+        <div class="thumb-strip">
+          {% for img in product.images.all %}
+            <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.title }}">
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="product-info">
+      <span class="cat">{{ product.category.name }}{% if product.brand %} · {{ product.brand.name }}{% endif %}</span>
+      <h1>{{ product.title }}</h1>
+
+      <div class="energy-rating" style="max-width:220px">
+        <div class="track">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          <div class="marker" style="right:{% widthratio product.rating 5 100 %}%"></div>
+        </div>
+        <span class="label">محبوبیت {{ product.rating|floatformat:1 }} / ۵</span>
+      </div>
+
+      <div class="price-row">
+        <span class="price">{{ product.final_price|floatformat:0 }} تومان</span>
+        {% if product.discount_price %}
+          <span class="old-price">{{ product.price|floatformat:0 }} تومان</span>
+        {% endif %}
+        {% if product.in_stock %}
+          <span class="stock in">موجود در انبار ({{ product.stock_quantity }} عدد)</span>
+        {% else %}
+          <span class="stock out">ناموجود</span>
+        {% endif %}
+      </div>
+
+      {% if product.in_stock %}
+        <form method="post" action="{% url 'shop:cart_add' product_id=product.id %}" id="add-to-cart-form">
+          {% csrf_token %}
+          <div class="qty-row">
+            <span>تعداد:</span>
+            <div class="stepper">
+              <button type="button" id="qty-minus" aria-label="کم کردن">−</button>
+              {{ form.quantity }}
+              <button type="button" id="qty-plus" aria-label="زیاد کردن">+</button>
+            </div>
+          </div>
+          {% if form.quantity.errors %}
+            <div class="field-error">{{ form.quantity.errors|join:" " }}</div>
+          {% endif %}
+
+          <div class="product-actions">
+            <button type="submit" class="btn primary">افزودن به سبد خرید</button>
+            <a class="btn ghost" href="{% url 'shop:cart_detail' %}">مشاهده‌ی سبد خرید</a>
+          </div>
+        </form>
+      {% else %}
+        <div class="product-actions">
+          <button type="button" class="btn primary" disabled>ناموجود</button>
+          <a class="btn ghost" href="{% url 'shop:cart_detail' %}">مشاهده‌ی سبد خرید</a>
+        </div>
+      {% endif %}
+
+      {% if product.description %}
+        <div class="desc-block">{{ product.description|linebreaks }}</div>
+      {% endif %}
+
+      {% if product.specs.all %}
+        <div class="spec-sheet">
+          {% for spec in product.specs.all %}
+            <div class="row"><span>{{ spec.key }}</span><b>{{ spec.value }}</b></div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // فقط برای راحتی کلیک روی +/-، خود فیلد تعداد همون فیلد واقعی فرم جنگوئه (name="quantity")
+  (function () {
+    const form = document.getElementById("add-to-cart-form");
+    if (!form) return;
+    const input = form.querySelector('input[name="quantity"]');
+    const minBtn = document.getElementById("qty-minus");
+    const plusBtn = document.getElementById("qty-plus");
+    if (!input) return;
+
+    minBtn.addEventListener("click", () => {
+      const val = Math.max(1, (parseInt(input.value) || 1) - 1);
+      input.value = val;
+    });
+    plusBtn.addEventListener("click", () => {
+      const max = {{ product.stock_quantity }};
+      const val = Math.min(max, (parseInt(input.value) || 1) + 1);
+      input.value = val;
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}سفارش ثبت شد — خانه لوازم{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="form-card wide" style="margin:36px auto">
+
+    <div class="success-banner">
+      <div class="success-icon">✅</div>
+      <h1>سفارشت با موفقیت ثبت شد</h1>
+      <p style="color:var(--muted)">
+        شماره سفارش: <b style="font-family:var(--font-mono);color:var(--ink)">#{{ order.id }}</b>
+        &nbsp;·&nbsp;
+        <span class="status-pill {{ order.status }}">{{ order.get_status_display }}</span>
+      </p>
+    </div>
+
+    <div class="spec-sheet">
+      <div class="row"><span>تاریخ ثبت</span><b>{{ order.created_at|date:"Y/m/d H:i" }}</b></div>
+      <div class="row"><span>شماره تماس</span><b style="direction:ltr">{{ order.phone }}</b></div>
+      <div class="row"><span>آدرس تحویل</span><b>{{ order.address }}</b></div>
+    </div>
+
+    <table class="order-detail-table">
+      <thead>
+        <tr>
+          <th>محصول</th>
+          <th>تعداد</th>
+          <th>قیمت واحد</th>
+          <th>جمع</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+          <tr>
+            <td>{{ item.product.title }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price_at_purchase|floatformat:0 }} تومان</td>
+            <td>{{ item.subtotal|floatformat:0 }} تومان</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="row total" style="display:flex;justify-content:space-between;margin-top:14px">
+      <span>مبلغ کل</span>
+      <span>{{ order.total_price|floatformat:0 }} تومان</span>
+    </div>
+
+    <div class="product-actions" style="margin-top:24px">
+      <a href="{% url 'product_list' %}" class="btn primary">بازگشت به فروشگاه</a>
+      <a href="{% url 'order_history' %}" class="btn ghost">مشاهده‌ی سفارش‌های من</a>
+    </div>
+  </div>
+</div>
+{% endblock %

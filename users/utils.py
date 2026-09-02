@@ -47,7 +47,7 @@ def send_otp_code(mobile: str, code: str) -> int:
     payload = {
         "mobile": mobile,
         "templateId": int(getattr(settings, "SMSIR_TEMPLATE_ID", 0)),
-        "parameters": [{"name": "code", "value": str(code)}],
+        "parameters": [{"name": "Code", "value": str(code)}],
     }
 
     try:

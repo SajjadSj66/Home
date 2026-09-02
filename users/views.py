@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 def register_view(request):
     # ✅ اگر کاربر لاگین هست، نذار برگرده به صفحه ثبت‌نام
     if request.user.is_authenticated:
-        return redirect("packages")
+        return redirect("dashboard")
 
     pending_user_id = request.session.get("pending_user_id")
 
@@ -66,6 +66,7 @@ def register_view(request):
                 try:
                     PhoneOTP.objects.create(user=user, otp=otp_code)
                     send_otp_code(user.mobile, otp_code)
+                    print(send_otp_code)
                     messages.success(request, "کد جدید ارسال شد.")
                 except Exception as e:
                     logger.exception("Failed to send OTP to %s: %s", user.mobile, e)
@@ -102,7 +103,7 @@ def register_view(request):
 
                     request.session.pop("pending_user_id", None)
                     login(request, user)
-                    return redirect("packages")
+                    return redirect("dashboard")
 
                 messages.error(request, "کد وارد شده اشتباه است.")
                 return redirect(reverse("register"))
@@ -133,6 +134,7 @@ def register_view(request):
                 try:
                     PhoneOTP.objects.create(user=user, otp=otp_code)
                     send_otp_code(mobile, otp_code)
+                    print(otp_code)
                     messages.success(request, "کد تایید ارسال شد.")
                 except Exception as e:
                     logger.exception("Failed to send OTP to %s: %s", mobile, e)
@@ -149,13 +151,13 @@ def register_view(request):
 
 @login_required
 def dashboard_view(request):
-    user_plans = request.user.plans.select_related("plan")
+    # user_plans = request.user.plans.select_related("plan")
     orders = request.user.orders.select_related("user")
     # transactions = Payment.objects.filter(user=request.user).order_by("-created_at")[:5]  # تراکنش‌های واقعی
     # plans_available = Plan.objects.filter(is_active=True)  # برای اضافه کردن پلن جدید
 
-    return render(request, "dash.html", {
-        "user_plans": user_plans,
+    return render(request, "dashboard.html", {
+        # "user_plans": user_plans,
         "orders": orders,
         # "transactions": transactions,
         # "plans_available": plans_available
@@ -200,3 +202,5 @@ def blog(request):
 
 def security(request):
     return render(request, "gavanin.html")
+
+

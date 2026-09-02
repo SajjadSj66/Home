@@ -1,28 +1,83 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>جزئیات محصول — خانه لوازم</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+{% extends "base.html" %}
 
-<header id="site-header" class="site-header"></header>
+{% block title %}محصولات — خانه لوازم{% endblock %}
+{% block nav_products %}active{% endblock %}
 
-<main class="container">
-  <div class="product-view" id="product-view">
-    <div class="empty-state">در حال بارگذاری...</div>
+{% block content %}
+<div class="container">
+
+  <div class="category-strip">
+    <a href="{% url 'product_list' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}"
+       class="category-chip {% if not current_category %}active{% endif %}">همه</a>
+    {% for c in categories %}
+      <a href="{% url 'product_list' %}?category={{ c.slug }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
+         class="category-chip {% if current_category == c.slug %}active{% endif %}">{{ c.name }}</a>
+    {% endfor %}
   </div>
-</main>
 
-<footer id="site-footer" class="site-footer"></footer>
+  <form class="toolbar" method="get">
+    <input type="search" name="q" placeholder="جستجوی لوازم آشپزخانه..." value="{{ search_query }}">
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+  </form>
 
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/store.js"></script>
-<script src="js/layout.js"></script>
-<script src="js/product.js"></script>
-</body>
-</html>
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        <a class="card" href="{% url 'product_detail' slug=product.slug %}">
+          <div class="thumb">
+            {% if product.main_image %}
+              <img src="{{ product.main_image.url }}" alt="{{ product.title }}">
+            {% else %}
+              <span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>
+            {% endif %}
+          </div>
+          <span class="cat">{{ product.category.name }}</span>
+          <h3>{{ product.title }}</h3>
+
+          <div class="energy-rating">
+            <div class="track">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <div class="marker" style="right:{% widthratio product.rating 5 100 %}%"></div>
+            </div>
+            <span class="label">محبوبیت {{ product.rating|floatformat:1 }} / ۵</span>
+          </div>
+
+          <div class="bottom">
+            <div class="price-block">
+              <span class="price">{{ product.final_price|floatformat:0 }} تومان</span>
+              {% if product.discount_price %}
+                <span class="old-price">{{ product.price|floatformat:0 }}</span>
+              {% endif %}
+            </div>
+            {% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">قبلی</a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+            <span class="current">{{ num }}</span>
+          {% else %}
+            <a href="?page={{ num }}{% if current_category %}&category={{ current_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">بعدی</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">محصولی با این مشخصات پیدا نشد.</div>
+  {% endif %}
+
+</div>
+{% endblock %}
