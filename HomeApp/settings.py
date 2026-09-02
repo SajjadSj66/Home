@@ -29,7 +29,15 @@ SECRET_KEY = 'django-insecure-w%3)-m@!icp8^evjv!35#6q9_hm4zin4gm=*yv03&3huru9@+_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "87.107.164.85",
+    "aytekhome.com",
+    "www.aytekhome.com"
+    "aytekhome.ir",
+    "wwww.aytekhome.ir"
+]
 
 
 # Application definition
