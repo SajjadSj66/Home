@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import AddToCartForm, OrderForm
-from .models import Cart, CartItem, Category, Order, OrderItem, Product
+from .models import *
 
 PRODUCTS_PER_PAGE = 12
 
@@ -137,51 +137,142 @@ def cart_remove(request, item_id):
 
 @login_required
 def checkout(request):
-    """گرفتن آدرس/تلفن، ساخت Order از روی آیتم‌های سبد، و خالی کردن سبد بعد از ثبت موفق"""
-    cart = _get_cart(request.user)
-    items = list(cart.items.select_related("product").all())
+    cart = Cart.objects.get_or_create(
+        user=request.user
+    )[0]
+
+    items = list(
+        cart.items
+        .select_related("product")
+        .all()
+    )
 
     if not items:
-        messages.warning(request, "سبد خرید شما خالی است.")
+        messages.warning(
+            request,
+            "سبد خرید شما خالی است.",
+        )
         return redirect("cart_detail")
 
     if request.method == "POST":
-        form = OrderForm(request.POST)
+
+        form = OrderForm(
+            request.POST
+        )
+
         if form.is_valid():
-            # درست قبل از ثبت نهایی، دوباره موجودی رو چک کن (ممکنه در این فاصله تغییر کرده باشه)
-            for item in items:
-                if item.quantity > item.product.stock_quantity:
-                    messages.error(
-                        request,
-                        f"موجودی «{item.product.title}» کافی نیست "
-                        f"(فقط {item.product.stock_quantity} عدد باقی مانده).",
-                    )
-                    return redirect("cart_detail")
 
             with transaction.atomic():
-                order = form.save(commit=False)
+
+                cart = (
+                    Cart.objects
+                    .select_for_update()
+                    .get(
+                        user=request.user
+                    )
+                )
+
+                cart_items = list(
+                    CartItem.objects
+                    .select_for_update()
+                    .select_related("product")
+                    .filter(cart=cart)
+                )
+
+                if not cart_items:
+                    messages.warning(
+                        request,
+                        "سبد خرید شما خالی است.",
+                    )
+                    return redirect(
+                        "cart_detail"
+                    )
+
+                total_price = 0
+
+                for item in cart_items:
+
+                    product = item.product
+
+                    if not product.is_active:
+                        messages.error(
+                            request,
+                            f"محصول «{product.title}» "
+                            "دیگر قابل خرید نیست.",
+                        )
+                        return redirect(
+                            "cart_detail"
+                        )
+
+                    if item.quantity > product.stock_quantity:
+                        messages.error(
+                            request,
+                            f"موجودی «{product.title}» کافی نیست.",
+                        )
+                        return redirect(
+                            "cart_detail"
+                        )
+
+                    total_price += (
+                        item.quantity *
+                        product.final_price
+                    )
+
+                # -----------------------------------------
+                # ساخت سفارش
+                # -----------------------------------------
+
+                order = form.save(
+                    commit=False
+                )
+
                 order.user = request.user
+                order.status = Order.Status.PENDING
+                order.total_price = total_price
+
                 order.save()
 
-                for item in items:
+                # -----------------------------------------
+                # ساخت آیتم‌های سفارش
+                # -----------------------------------------
+
+                for item in cart_items:
+
                     OrderItem.objects.create(
                         order=order,
                         product=item.product,
                         quantity=item.quantity,
                         price_at_purchase=item.product.final_price,
                     )
-                    item.product.stock_quantity -= item.quantity
-                    item.product.save(update_fields=["stock_quantity"])
 
-                order.recalculate_total()
-                cart.clear()
+                # -----------------------------------------
+                # ساخت Payment
+                # -----------------------------------------
 
-            return redirect("order_success", order_id=order.id)
+                payment = Payment.objects.create(
+                    order=order,
+                    amount=total_price,
+                    status=Payment.Status.PENDING,
+                )
+
+            # بعد از commit به مرحله پرداخت برو
+            return redirect(
+                "payment_start",
+                order_id=order.id,
+            )
+
     else:
         form = OrderForm()
 
-    return render(request, "checkout.html", {"form": form, "items": items, "cart": cart})
-
+    return render(
+        request,
+        "checkout.html",
+        {
+            "form": form,
+            "items": items,
+            "cart": cart,
+        },
+    )
 
 @login_required
 def order_success(request, order_id):
@@ -201,3 +292,274 @@ def order_history(request):
         .order_by("-created_at")
     )
     return render(request, "order_history.html", {"orders": orders})
+
+
+from django.db import transaction
+from django.utils import timezone
+
+
+def complete_successful_payment(
+    order_id,
+    transaction_id=None,
+    ref_id=None,
+    card_pan=None,
+):
+    with transaction.atomic():
+
+        order = (
+            Order.objects
+            .select_for_update()
+            .get(pk=order_id)
+        )
+
+        payment = (
+            Payment.objects
+            .select_for_update()
+            .get(order=order)
+        )
+
+        if (
+            order.status == Order.Status.PAID
+            and payment.status == Payment.Status.SUCCESS
+        ):
+            return order
+
+        items = list(
+            order.items
+            .select_related("product")
+            .select_for_update()
+            .all()
+        )
+
+        for item in items:
+
+            product = (
+                Product.objects
+                .select_for_update()
+                .get(pk=item.product_id)
+            )
+
+            if not product.is_active:
+                raise ValueError(
+                    f"محصول «{product.title}» "
+                    "دیگر فعال نیست."
+                )
+
+            if item.quantity > product.stock_quantity:
+                raise ValueError(
+                    f"موجودی «{product.title}» کافی نیست."
+                )
+
+            product.stock_quantity -= item.quantity
+
+            product.save(
+                update_fields=[
+                    "stock_quantity"
+                ]
+            )
+
+        payment.status = Payment.Status.SUCCESS
+        payment.transaction_id = transaction_id
+        payment.ref_id = ref_id
+        payment.card_pan = card_pan
+        payment.paid_at = timezone.now()
+
+        payment.save(
+            update_fields=[
+                "status",
+                "transaction_id",
+                "ref_id",
+                "card_pan",
+                "paid_at",
+                "updated_at",
+            ]
+        )
+
+        order.status = Order.Status.PAID
+
+        order.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        # پیدا کردن سبد کاربر
+        cart = Cart.objects.filter(
+            user=order.user
+        ).first()
+
+        if cart:
+            CartItem.objects.filter(
+                cart=cart
+            ).delete()
+
+    return order
+
+
+@login_required
+def payment_start(request, order_id):
+    """
+    شروع پرداخت سفارش
+    """
+
+    order = get_object_or_404(
+        Order,
+        pk=order_id,
+        user=request.user,
+    )
+
+    payment = get_object_or_404(
+        Payment,
+        order=order,
+    )
+
+    # سفارش قبلاً پرداخت شده
+    if order.status == Order.Status.PAID:
+        messages.info(
+            request,
+            "این سفارش قبلاً پرداخت شده است.",
+        )
+
+        return redirect(
+            "order_success",
+            order_id=order.id,
+        )
+
+    # پرداخت قبلی موفق بوده
+    if payment.status == Payment.Status.SUCCESS:
+        messages.info(
+            request,
+            "این سفارش قبلاً پرداخت شده است.",
+        )
+
+        return redirect(
+            "order_success",
+            order_id=order.id,
+        )
+
+    # =====================================================
+    # فردا کد اتصال به درگاه اینجا قرار می‌گیرد.
+    # =====================================================
+
+    """
+    نمونه ساختار:
+
+    authority = gateway.request(
+        amount=payment.amount,
+        description=f"Order #{order.id}",
+        callback_url=...
+    )
+
+    payment.authority = authority
+    payment.save(
+        update_fields=["authority"]
+    )
+
+    return redirect(
+        gateway.payment_url(authority)
+    )
+    """
+
+    messages.info(
+        request,
+        "درگاه پرداخت هنوز تنظیم نشده است.",
+    )
+
+    return redirect(
+        "checkout"
+    )
+
+@login_required
+def payment_callback(request, order_id):
+
+    order = get_object_or_404(
+        Order,
+        pk=order_id,
+        user=request.user,
+    )
+
+    payment = get_object_or_404(
+        Payment,
+        order=order,
+    )
+
+    # -----------------------------------------
+    # اگر کاربر پرداخت را لغو کرده
+    # -----------------------------------------
+
+    if request.GET.get("Status") != "OK":
+        payment.status = Payment.Status.CANCELLED
+        payment.error_message = "پرداخت توسط کاربر لغو شد."
+
+        payment.save(
+            update_fields=[
+                "status",
+                "error_message",
+                "updated_at",
+            ]
+        )
+
+        messages.warning(
+            request,
+            "پرداخت لغو شد.",
+        )
+
+        return redirect(
+            "checkout"
+        )
+
+    # -----------------------------------------
+    # VERIFY واقعی درگاه
+    # -----------------------------------------
+
+    # result = zarinpal.verify(
+    #     amount=payment.amount,
+    #     authority=payment.authority,
+    # )
+
+    # -----------------------------------------
+    # در صورت موفقیت
+    # -----------------------------------------
+
+    try:
+
+        order = complete_successful_payment(
+            order_id=order.id,
+            transaction_id="...",
+            ref_id="...",
+            card_pan=None,
+        )
+
+    except ValueError as exc:
+
+        payment.status = Payment.Status.FAILED
+        payment.error_message = str(exc)
+
+        payment.save(
+            update_fields=[
+                "status",
+                "error_message",
+                "updated_at",
+            ]
+        )
+
+        messages.error(
+            request,
+            "پرداخت انجام شد اما موجودی محصول کافی نیست. "
+            "لطفاً با پشتیبانی تماس بگیرید.",
+        )
+
+        return redirect(
+            "order_history"
+        )
+
+    messages.success(
+        request,
+        "پرداخت با موفقیت انجام شد.",
+    )
+
+    return redirect(
+        "order_success",
+        order_id=order.id,
+    )

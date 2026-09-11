@@ -1,27 +1,84 @@
 from django import forms
 
-from .models import Brand, Category, Order, Product, ProductImage, ProductSpec
+from .models import (
+    Brand,
+    Category,
+    Order,
+    Product,
+    ProductImage,
+    ProductSpec,
+)
 
+
+# =========================================================
+# Category
+# =========================================================
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ["name", "icon", "display_order"]
-        labels = {"name": "نام دسته", "icon": "آیکون", "display_order": "ترتیب نمایش"}
 
+        labels = {
+            "name": "نام دسته",
+            "icon": "آیکون",
+            "display_order": "ترتیب نمایش",
+        }
+
+        widgets = {
+            "name": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً لوازم پخت و پز",
+                }
+            ),
+            "icon": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً fa-solid fa-pot-food",
+                }
+            ),
+            "display_order": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                }
+            ),
+        }
+
+
+# =========================================================
+# Brand
+# =========================================================
 
 class BrandForm(forms.ModelForm):
     class Meta:
         model = Brand
         fields = ["name", "logo"]
-        labels = {"name": "نام برند", "logo": "لوگو"}
 
+        labels = {
+            "name": "نام برند",
+            "logo": "لوگو",
+        }
+
+        widgets = {
+            "name": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً بوش",
+                }
+            ),
+        }
+
+
+# =========================================================
+# Product
+# =========================================================
 
 class ProductForm(forms.ModelForm):
-    """فرم افزودن/ویرایش محصول — همون فیلدهایی که تو پنل ادمین فرانت پر می‌شن"""
+    """
+    فرم ایجاد / ویرایش محصول
+    """
 
     class Meta:
         model = Product
+
         fields = [
             "category",
             "brand",
@@ -33,75 +90,302 @@ class ProductForm(forms.ModelForm):
             "stock_quantity",
             "is_active",
         ]
+
         labels = {
             "category": "دسته‌بندی",
             "brand": "برند",
             "title": "عنوان محصول",
             "description": "توضیحات",
-            "price": "قیمت (تومان)",
+            "price": "قیمت اصلی (تومان)",
             "discount_price": "قیمت با تخفیف (تومان)",
             "main_image": "تصویر اصلی",
             "stock_quantity": "موجودی انبار",
             "is_active": "قابل نمایش در سایت",
         }
+
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 4}),
+            "title": forms.TextInput(
+                attrs={
+                    "placeholder": "نام محصول را وارد کنید",
+                }
+            ),
+
+            "description": forms.Textarea(
+                attrs={
+                    "rows": 5,
+                    "placeholder": "توضیحات کامل محصول...",
+                }
+            ),
+
+            "price": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                    "step": 1,
+                    "placeholder": "مثلاً 12500000",
+                }
+            ),
+
+            "discount_price": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                    "step": 1,
+                    "placeholder": "در صورت داشتن تخفیف",
+                }
+            ),
+
+            "stock_quantity": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                    "step": 1,
+                }
+            ),
+
+            "is_active": forms.CheckboxInput(),
         }
 
     def clean(self):
-        cleaned = super().clean()
-        price = cleaned.get("price")
-        discount_price = cleaned.get("discount_price")
-        if discount_price and price and discount_price >= price:
-            self.add_error("discount_price", "قیمت با تخفیف باید کمتر از قیمت اصلی باشه.")
-        return cleaned
+        cleaned_data = super().clean()
 
+        price = cleaned_data.get("price")
+        discount_price = cleaned_data.get("discount_price")
+
+        if price is not None and price < 0:
+            self.add_error(
+                "price",
+                "قیمت نمی‌تواند منفی باشد."
+            )
+
+        if discount_price is not None and discount_price < 0:
+            self.add_error(
+                "discount_price",
+                "قیمت تخفیف نمی‌تواند منفی باشد."
+            )
+
+        if (
+            price is not None
+            and discount_price is not None
+            and discount_price >= price
+        ):
+            self.add_error(
+                "discount_price",
+                "قیمت با تخفیف باید کمتر از قیمت اصلی باشد."
+            )
+
+        return cleaned_data
+
+
+# =========================================================
+# Product Image
+# =========================================================
 
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
-        fields = ["image", "alt_text", "display_order"]
-        labels = {"image": "تصویر", "alt_text": "متن جایگزین", "display_order": "ترتیب"}
 
+        fields = [
+            "image",
+            "alt_text",
+            "display_order",
+        ]
+
+        labels = {
+            "image": "تصویر",
+            "alt_text": "متن جایگزین",
+            "display_order": "ترتیب",
+        }
+
+        widgets = {
+            "alt_text": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً نمای جلوی محصول",
+                }
+            ),
+            "display_order": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                }
+            ),
+        }
+
+
+# =========================================================
+# Product Specification
+# =========================================================
 
 class ProductSpecForm(forms.ModelForm):
     class Meta:
         model = ProductSpec
-        fields = ["key", "value", "display_order"]
-        labels = {"key": "عنوان مشخصه", "value": "مقدار", "display_order": "ترتیب"}
+
+        fields = [
+            "key",
+            "value",
+            "display_order",
+        ]
+
+        labels = {
+            "key": "عنوان مشخصه",
+            "value": "مقدار",
+            "display_order": "ترتیب",
+        }
+
+        widgets = {
+            "key": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً توان مصرفی",
+                }
+            ),
+            "value": forms.TextInput(
+                attrs={
+                    "placeholder": "مثلاً ۱۸۰۰ وات",
+                }
+            ),
+            "display_order": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                }
+            ),
+        }
 
 
-# فرم‌ست‌های داخل صفحه‌ی محصول (برای مدیریت گالری تصاویر و مشخصات فنی همراه با خود محصول)
+# =========================================================
+# Inline Formsets
+# =========================================================
+
 ProductImageFormSet = forms.inlineformset_factory(
-    Product, ProductImage, form=ProductImageForm, extra=1, can_delete=True
-)
-ProductSpecFormSet = forms.inlineformset_factory(
-    Product, ProductSpec, form=ProductSpecForm, extra=1, can_delete=True
+    parent_model=Product,
+    model=ProductImage,
+    form=ProductImageForm,
+    extra=1,
+    can_delete=True,
 )
 
+ProductSpecFormSet = forms.inlineformset_factory(
+    parent_model=Product,
+    model=ProductSpec,
+    form=ProductSpecForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+# =========================================================
+# Add To Cart
+# =========================================================
 
 class AddToCartForm(forms.Form):
-    """فرم افزودن به سبد خرید — توی view، محصول از URL/context گرفته میشه، این فقط تعداد رو می‌گیره"""
+    """
+    فرم افزودن محصول به سبد خرید.
 
-    quantity = forms.IntegerField(min_value=1, initial=1, label="تعداد")
+    در view محصول را به فرم پاس بده:
+        form = AddToCartForm(product=product)
+    """
 
+    quantity = forms.IntegerField(
+        min_value=1,
+        initial=1,
+        label="تعداد",
+        widget=forms.NumberInput(
+            attrs={
+                "min": 1,
+                "step": 1,
+            }
+        ),
+    )
+
+    def __init__(self, *args, product=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.product = product
+
+        if product is not None:
+            self.fields["quantity"].widget.attrs["max"] = product.stock_quantity
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data["quantity"]
+
+        if self.product is None:
+            return quantity
+
+        if not self.product.is_active:
+            raise forms.ValidationError(
+                "این محصول در حال حاضر قابل خرید نیست."
+            )
+
+        if self.product.stock_quantity <= 0:
+            raise forms.ValidationError(
+                "این محصول در حال حاضر موجود نیست."
+            )
+
+        if quantity > self.product.stock_quantity:
+            raise forms.ValidationError(
+                f"حداکثر تعداد قابل خرید: {self.product.stock_quantity}"
+            )
+
+        return quantity
+
+
+# =========================================================
+# Order / Checkout
+# =========================================================
 
 class OrderForm(forms.ModelForm):
-    """فرم نهایی کردن خرید (checkout) — دقیقاً همون آدرس و شماره تماسی که تو فرانت گرفته میشه"""
+    """
+    فرم نهایی کردن خرید
+    """
 
     class Meta:
         model = Order
-        fields = ["address", "phone"]
-        labels = {"address": "آدرس کامل تحویل کالا", "phone": "شماره تماس"}
+
+        fields = [
+            "address",
+            "phone",
+        ]
+
+        labels = {
+            "address": "آدرس کامل تحویل کالا",
+            "phone": "شماره تماس",
+        }
+
         widgets = {
             "address": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "استان، شهر، خیابان، پلاک، واحد..."}
+                attrs={
+                    "rows": 4,
+                    "placeholder": (
+                        "استان، شهر، خیابان، پلاک، واحد..."
+                    ),
+                }
             ),
-            "phone": forms.TextInput(attrs={"placeholder": "09xxxxxxxxx"}),
+
+            "phone": forms.TextInput(
+                attrs={
+                    "placeholder": "09xxxxxxxxx",
+                    "inputmode": "tel",
+                    "maxlength": "11",
+                }
+            ),
         }
 
     def clean_phone(self):
         phone = self.cleaned_data["phone"].strip()
-        if not phone.isdigit() or len(phone) != 11 or not phone.startswith("09"):
-            raise forms.ValidationError("شماره موبایل معتبر نیست (باید ۱۱ رقم باشه و با ۰۹ شروع بشه).")
+
+        # تبدیل اعداد فارسی و عربی به انگلیسی
+        translation_table = str.maketrans(
+            "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
+            "01234567890123456789",
+        )
+
+        phone = phone.translate(translation_table)
+
+        # حذف فاصله
+        phone = phone.replace(" ", "")
+
+        if (
+            not phone.isdigit()
+            or len(phone) != 11
+            or not phone.startswith("09")
+        ):
+            raise forms.ValidationError(
+                "شماره موبایل معتبر نیست. "
+                "شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود."
+            )
+
         return phone

@@ -2,15 +2,26 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
+from django.utils import timezone
 
 
 class Category(models.Model):
-    """دسته‌بندی لوازم آشپزخانه (قابلمه، سرخ‌کن، آبمیوه‌گیری، اجاق گاز و ...)"""
-
     name = models.CharField("نام دسته", max_length=100, unique=True)
-    slug = models.SlugField("اسلاگ", max_length=110, unique=True, blank=True)
-    icon = models.CharField("آیکون (اختیاری)", max_length=50, blank=True)
-    display_order = models.PositiveSmallIntegerField("ترتیب نمایش", default=0)
+    slug = models.SlugField(
+        "اسلاگ",
+        max_length=110,
+        unique=True,
+        blank=True,
+    )
+    icon = models.CharField(
+        "آیکون (اختیاری)",
+        max_length=50,
+        blank=True,
+    )
+    display_order = models.PositiveSmallIntegerField(
+        "ترتیب نمایش",
+        default=0,
+    )
 
     class Meta:
         verbose_name = "دسته‌بندی"
@@ -22,16 +33,31 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = slugify(
+                self.name,
+                allow_unicode=True,
+            )
         super().save(*args, **kwargs)
 
 
 class Brand(models.Model):
-    """برند سازنده (مثلاً پارس‌خزر، فلر، بوش و ...)"""
-
-    name = models.CharField("نام برند", max_length=100, unique=True)
-    slug = models.SlugField("اسلاگ", max_length=110, unique=True, blank=True)
-    logo = models.ImageField("لوگو", upload_to="brands/", blank=True, null=True)
+    name = models.CharField(
+        "نام برند",
+        max_length=100,
+        unique=True,
+    )
+    slug = models.SlugField(
+        "اسلاگ",
+        max_length=110,
+        unique=True,
+        blank=True,
+    )
+    logo = models.ImageField(
+        "لوگو",
+        upload_to="brands/",
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = "برند"
@@ -43,55 +69,115 @@ class Brand(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = slugify(
+                self.name,
+                allow_unicode=True,
+            )
         super().save(*args, **kwargs)
 
 
 class Product(models.Model):
-    """یک کالای لوازم آشپزخانه (مثلاً سرخ‌کن، آبمیوه‌گیری، قابلمه‌ست و ...)"""
 
     category = models.ForeignKey(
-        Category, verbose_name="دسته‌بندی", related_name="products", on_delete=models.PROTECT
+        Category,
+        verbose_name="دسته‌بندی",
+        related_name="products",
+        on_delete=models.PROTECT,
     )
+
     brand = models.ForeignKey(
-        Brand, verbose_name="برند", related_name="products",
-        on_delete=models.SET_NULL, null=True, blank=True,
+        Brand,
+        verbose_name="برند",
+        related_name="products",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
-    title = models.CharField("عنوان محصول", max_length=200)
-    slug = models.SlugField("اسلاگ", max_length=220, unique=True, blank=True)
-    description = models.TextField("توضیحات", blank=True)
+    title = models.CharField(
+        "عنوان محصول",
+        max_length=200,
+    )
 
-    price = models.PositiveBigIntegerField("قیمت (تومان)")
+    slug = models.SlugField(
+        "اسلاگ",
+        max_length=220,
+        unique=True,
+        blank=True,
+    )
+
+    description = models.TextField(
+        "توضیحات",
+        blank=True,
+    )
+
+    price = models.PositiveBigIntegerField(
+        "قیمت (تومان)",
+    )
+
     discount_price = models.PositiveBigIntegerField(
-        "قیمت با تخفیف (تومان)", null=True, blank=True,
-        help_text="اگه محصول تخفیف نداره، خالی بذار.",
+        "قیمت با تخفیف (تومان)",
+        null=True,
+        blank=True,
     )
 
-    main_image = models.ImageField("تصویر اصلی", upload_to="products/", blank=True, null=True)
+    main_image = models.ImageField(
+        "تصویر اصلی",
+        upload_to="products/",
+        blank=True,
+        null=True,
+    )
 
-    stock_quantity = models.PositiveIntegerField("موجودی انبار", default=0)
+    stock_quantity = models.PositiveIntegerField(
+        "موجودی انبار",
+        default=0,
+    )
+
     rating = models.DecimalField(
-        "امتیاز محبوبیت", max_digits=2, decimal_places=1, default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(5)],
+        "امتیاز محبوبیت",
+        max_digits=2,
+        decimal_places=1,
+        default=0,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(5),
+        ],
     )
 
-    is_active = models.BooleanField("قابل نمایش در سایت", default=True)
-    created_at = models.DateTimeField("تاریخ ثبت", auto_now_add=True)
-    updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
+    is_active = models.BooleanField(
+        "قابل نمایش در سایت",
+        default=True,
+    )
+
+    created_at = models.DateTimeField(
+        "تاریخ ثبت",
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        "آخرین ویرایش",
+        auto_now=True,
+    )
 
     class Meta:
         verbose_name = "محصول"
         verbose_name_plural = "محصولات"
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["category", "is_active"])]
+        indexes = [
+            models.Index(
+                fields=["category", "is_active"]
+            )
+        ]
 
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = slugify(
+                self.title,
+                allow_unicode=True,
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -100,9 +186,11 @@ class Product(models.Model):
 
     @property
     def final_price(self):
-        """قیمتی که باید تو فرانت نشون داده بشه (اگه تخفیف داشت، همون؛ وگرنه قیمت اصلی)"""
-        return self.discount_price or self.price
-
+        return (
+            self.discount_price
+            if self.discount_price is not None
+            else self.price
+        )
 
 class ProductImage(models.Model):
     """تصاویر اضافه برای گالری محصول (علاوه بر تصویر اصلی)"""
@@ -128,6 +216,63 @@ class ProductSpec(models.Model):
     key = models.CharField("عنوان مشخصه", max_length=80, help_text="مثلاً: توان مصرفی، ظرفیت، جنس بدنه")
     value = models.CharField("مقدار", max_length=200, help_text="مثلاً: ۱۸۰۰ وات، ۵ لیتر، استیل ضدزنگ")
     display_order = models.PositiveSmallIntegerField("ترتیب", default=0)
+class ProductImage(models.Model):
+
+    product = models.ForeignKey(
+        Product,
+        verbose_name="محصول",
+        related_name="images",
+        on_delete=models.CASCADE,
+    )
+
+    image = models.ImageField(
+        "تصویر",
+        upload_to="products/gallery/",
+    )
+
+    alt_text = models.CharField(
+        "متن جایگزین",
+        max_length=150,
+        blank=True,
+    )
+
+    display_order = models.PositiveSmallIntegerField(
+        "ترتیب",
+        default=0,
+    )
+
+    class Meta:
+        verbose_name = "تصویر محصول"
+        verbose_name_plural = "تصاویر محصول"
+        ordering = ["display_order"]
+
+    def __str__(self):
+        return f"تصویر {self.product.title}"
+
+
+class ProductSpec(models.Model):
+
+    product = models.ForeignKey(
+        Product,
+        verbose_name="محصول",
+        related_name="specs",
+        on_delete=models.CASCADE,
+    )
+
+    key = models.CharField(
+        "عنوان مشخصه",
+        max_length=80,
+    )
+
+    value = models.CharField(
+        "مقدار",
+        max_length=200,
+    )
+
+    display_order = models.PositiveSmallIntegerField(
+        "ترتیب",
+        default=0,
+    )
 
     class Meta:
         verbose_name = "مشخصه فنی"
@@ -138,8 +283,8 @@ class ProductSpec(models.Model):
         return f"{self.key}: {self.value}"
 
 
+
 class Order(models.Model):
-    """سفارش ثبت‌شده توسط کاربر (مدل User از اپ users خودت میاد)"""
 
     class Status(models.TextChoices):
         PENDING = "pending", "در انتظار پرداخت"
@@ -150,14 +295,42 @@ class Order(models.Model):
         CANCELLED = "cancelled", "لغوشده"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name="کاربر", related_name="orders", on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        verbose_name="کاربر",
+        related_name="orders",
+        on_delete=models.CASCADE,
     )
-    address = models.TextField("آدرس تحویل")
-    phone = models.CharField("شماره تماس", max_length=15)
-    status = models.CharField("وضعیت سفارش", max_length=20, choices=Status.choices, default=Status.PENDING)
-    total_price = models.PositiveBigIntegerField("مبلغ کل (تومان)", default=0)
-    created_at = models.DateTimeField("تاریخ ثبت", auto_now_add=True)
-    updated_at = models.DateTimeField("آخرین به‌روزرسانی", auto_now=True)
+
+    address = models.TextField(
+        "آدرس تحویل",
+    )
+
+    phone = models.CharField(
+        "شماره تماس",
+        max_length=15,
+    )
+
+    status = models.CharField(
+        "وضعیت سفارش",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    total_price = models.PositiveBigIntegerField(
+        "مبلغ کل (تومان)",
+        default=0,
+    )
+
+    created_at = models.DateTimeField(
+        "تاریخ ثبت",
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        "آخرین به‌روزرسانی",
+        auto_now=True,
+    )
 
     class Meta:
         verbose_name = "سفارش"
@@ -168,23 +341,41 @@ class Order(models.Model):
         return f"سفارش #{self.id} — {self.user}"
 
     def recalculate_total(self):
-        """جمع مبلغ آیتم‌ها رو دوباره حساب می‌کنه و ذخیره می‌کنه (بعد از اضافه/حذف آیتم صداش بزن)"""
-        total = sum(item.subtotal for item in self.items.all())
+        total = sum(
+            item.subtotal
+            for item in self.items.all()
+        )
+
         self.total_price = total
-        self.save(update_fields=["total_price"])
+
+        self.save(
+            update_fields=["total_price"]
+        )
 
 
 class OrderItem(models.Model):
-    """هر ردیفِ داخل یک سفارش (یک محصول + تعدادش)"""
 
-    order = models.ForeignKey(Order, verbose_name="سفارش", related_name="items", on_delete=models.CASCADE)
-    product = models.ForeignKey(
-        Product, verbose_name="محصول", related_name="order_items", on_delete=models.PROTECT
+    order = models.ForeignKey(
+        Order,
+        verbose_name="سفارش",
+        related_name="items",
+        on_delete=models.CASCADE,
     )
-    quantity = models.PositiveIntegerField("تعداد", default=1)
+
+    product = models.ForeignKey(
+        Product,
+        verbose_name="محصول",
+        related_name="order_items",
+        on_delete=models.PROTECT,
+    )
+
+    quantity = models.PositiveIntegerField(
+        "تعداد",
+        default=1,
+    )
+
     price_at_purchase = models.PositiveBigIntegerField(
-        "قیمت لحظه‌ی خرید (تومان)",
-        help_text="قیمت محصول رو موقع ثبت سفارش اینجا کپی کن تا بعداً با تغییر قیمت محصول جابه‌جا نشه.",
+        "قیمت لحظه خرید (تومان)",
     )
 
     class Meta:
@@ -196,8 +387,11 @@ class OrderItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.quantity * self.price_at_purchase
-
+        return (
+            self.quantity *
+            self.price_at_purchase
+        )
+    
 
 class Cart(models.Model):
     """سبد خرید فعال هر کاربر — یک کاربر همیشه یک سبد داره (تا وقتی تسویه بشه و سفارش بسازه)"""
@@ -248,3 +442,125 @@ class CartItem(models.Model):
     @property
     def subtotal(self):
         return self.quantity * self.product.final_price
+    
+
+
+class Payment(models.Model):
+    """
+    اطلاعات پرداخت مربوط به یک سفارش.
+
+    ساختار به‌صورت عمومی طراحی شده تا فردا بتوانی
+    ZarinPal یا هر درگاه دیگری را به آن متصل کنی.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "در انتظار پرداخت"
+        SUCCESS = "success", "موفق"
+        FAILED = "failed", "ناموفق"
+        CANCELLED = "cancelled", "لغوشده"
+
+    order = models.OneToOneField(
+        Order,
+        verbose_name="سفارش",
+        related_name="payment",
+        on_delete=models.CASCADE,
+    )
+
+    amount = models.PositiveBigIntegerField(
+        "مبلغ پرداختی (تومان)",
+    )
+
+    status = models.CharField(
+        "وضعیت پرداخت",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    authority = models.CharField(
+        "شناسه Authority",
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    transaction_id = models.CharField(
+        "شناسه تراکنش",
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    gateway = models.CharField(
+        "درگاه پرداخت",
+        max_length=50,
+        default="zarinpal",
+    )
+
+    ref_id = models.CharField(
+        "شماره مرجع",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    card_pan = models.CharField(
+        "شماره کارت",
+        max_length=30,
+        blank=True,
+        null=True,
+    )
+
+    error_message = models.TextField(
+        "پیام خطا",
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        "تاریخ ایجاد",
+        auto_now_add=True,
+    )
+
+    paid_at = models.DateTimeField(
+        "تاریخ پرداخت",
+        null=True,
+        blank=True,
+    )
+
+    updated_at = models.DateTimeField(
+        "آخرین به‌روزرسانی",
+        auto_now=True,
+    )
+
+    class Meta:
+        verbose_name = "پرداخت"
+        verbose_name_plural = "پرداختها"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"پرداخت سفارش #{self.order_id}"
+
+    def mark_as_paid(
+        self,
+        transaction_id=None,
+        ref_id=None,
+        card_pan=None,
+    ):
+        self.status = self.Status.SUCCESS
+        self.transaction_id = transaction_id
+        self.ref_id = ref_id
+        self.card_pan = card_pan
+        self.paid_at = timezone.now()
+
+        self.save(
+            update_fields=[
+                "status",
+                "transaction_id",
+                "ref_id",
+                "card_pan",
+                "paid_at",
+                "updated_at",
+            ]
+        )
