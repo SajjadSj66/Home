@@ -364,6 +364,27 @@ class Order(models.Model):
         if commit:
             self.save(update_fields=["total_price"])
 
+    @property
+    def first_item(self):
+        """اولین آیتم سفارش برای نمایش در داشبورد"""
+        return self.items.select_related("product").first()
+
+    @property
+    def summary(self):
+        """خلاصه سفارش — عنوان اولین محصول"""
+        first = self.first_item
+        if not first:
+            return "سفارش بدون آیتم"
+        if self.items.count() > 1:
+            return f"{first.product.title} و {self.items.count() - 1} کالای دیگر"
+        return first.product.title
+
+    @property
+    def first_item_icon(self):
+        """آیکون اولین محصول (اگه Product.icon داره)"""
+        first = self.first_item
+        return getattr(first.product, "icon", "📦") if first else "📦"
+
 
 class OrderItem(models.Model):
 

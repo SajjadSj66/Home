@@ -1270,7 +1270,7 @@ body::after{
         {% for order in orders %}
           <article class="order-card" data-status="{{ order.status }}">
             <div class="oc-head">
-              <div class="oc-id">سفارش <strong>#{{ order.code }}</strong></div>
+              <div class="oc-id">سفارش <strong>#{{ order.id }}</strong></div>
               <span class="status {{ order.status }}">{{ order.get_status_display }}</span>
             </div>
             <div class="oc-body">

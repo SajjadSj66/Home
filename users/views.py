@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import MobileForm, OTPVerificationForm, SupportForm
+from .forms import *
 from .models import *
 from .utils import *
 from shop.models import Category, Product
@@ -142,8 +142,48 @@ def register_view(request):
 
 @login_required
 def dashboard_view(request):
-    orders = request.user.orders.select_related("user")
-    return render(request, "dashboard.html", {"orders": orders})
+    user = request.user
+
+    # ---------- فرم پروفایل ----------
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✓ تغییرات با موفقیت ذخیره شد')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'لطفاً خطاهای فرم را برطرف کنید.')
+    else:
+        form = ProfileForm(instance=user)
+
+    # ---------- سفارش‌ها ----------
+    orders = []
+    if hasattr(user, 'orders'):
+        orders = user.orders.select_related('user').order_by('-created_at')
+
+    # ---------- آدرس‌ها ----------
+    addresses = []
+    if hasattr(user, 'addresses'):
+        addresses = user.addresses.all()
+
+    # ---------- تیکت‌های پشتیبانی ----------
+    tickets = []
+    if hasattr(user, 'tickets'):
+        tickets = user.tickets.order_by('-created_at')[:5]
+
+    # ---------- تب فعال ----------
+    active_tab = request.GET.get('tab', 'profile')
+
+    context = {
+        'user': user,
+        'form': form,
+        'orders': orders,
+        'addresses': addresses,
+        'tickets': tickets,
+        'active_tab': active_tab,
+        'today': timezone.now(),
+    }
+    return render(request, 'dashboard.html', context)
 
 
 @login_required
