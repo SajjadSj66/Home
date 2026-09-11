@@ -689,175 +689,487 @@
       </defs>
     </svg>
   </div>
+<!-- ============================================================
+     CATEGORIES
+     ============================================================ -->
+<section class="categories" id="categories">
+  <div class="wrap">
 
-  <!-- ============================================================
-       CATEGORIES
-       ============================================================ -->
-  <section class="categories" id="categories">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow gold">دسته‌بندی‌ها</span>
-          <h2>هر چی برای آشپزخونه لازم داری</h2>
-        </div>
-        <p>از ابزار برش تا سرویس پذیرایی، دسته‌بندی مورد نظرت رو انتخاب کن.</p>
+    <div class="section-head">
+      <div>
+        <span class="eyebrow gold">دسته‌بندی‌ها</span>
+        <h2>هر چی برای آشپزخونه لازم داری</h2>
       </div>
 
-      <div class="cat-grid">
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/><path d="M2 10.5h20"/></svg></div>
-          <span>قابلمه و ماهیتابه</span>
-        </a>
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M5 19 18 6M14 3l7 7-2 2-7-7ZM3 21l3-1 5-5-2-2-5 5Z"/></svg></div>
-          <span>چاقو و ابزار برش</span>
-        </a>
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M5 8h11a3 3 0 0 1 0 6h-1M5 8v8a3 3 0 0 0 3 3h5a3 3 0 0 0 3-3v-1M5 8 4 5M9 5V3M13 5V3"/></svg></div>
-          <span>سرویس چای و قهوه</span>
-        </a>
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></div>
-          <span>لوازم برقی آشپزخانه</span>
-        </a>
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><ellipse cx="12" cy="7" rx="8" ry="3"/><path d="M4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7"/></svg></div>
-          <span>ظروف سرو و پذیرایی</span>
-        </a>
-        <a href="#" class="cat-card">
-          <div class="cat-ic"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></div>
-          <span>سازمان‌دهی آشپزخانه</span>
-        </a>
-      </div>
+      <p>
+        از ابزار برش تا سرویس پذیرایی، دسته‌بندی مورد نظرت رو انتخاب کن.
+      </p>
     </div>
-  </section>
 
-  <!-- ============================================================
-       PRODUCTS
-       ============================================================ -->
-  <section class="products" id="products">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">پرفروش‌ترین‌ها</span>
-          <h2>محصولات پیشنهادی وست‌لایف</h2>
+    <div class="cat-grid">
+
+      {% for category in categories %}
+
+        <a
+          href="{% url 'product_list' %}?category={{ category.slug }}"
+          class="cat-card"
+        >
+
+          <div class="cat-ic">
+
+            {% if category.icon %}
+              <span style="font-size: 26px;">
+                {{ category.icon }}
+              </span>
+            {% else %}
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                style="width:26px;height:26px"
+              >
+                <path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/>
+                <path d="M2 10.5h20"/>
+              </svg>
+            {% endif %}
+
+          </div>
+
+          <span>{{ category.name }}</span>
+
+        </a>
+
+      {% empty %}
+
+        <div class="card" style="grid-column: 1 / -1; text-align:center;">
+          <p>
+            هنوز دسته‌بندی‌ای برای فروشگاه ثبت نشده است.
+          </p>
         </div>
-        <p>انتخاب‌شده از میان پرفروش‌ترین و پرامتیازترین کالاهای فروشگاه.</p>
-      </div>
 
-      <div class="product-grid">
+      {% endfor %}
 
-        <article class="product-card">
-          <div class="product-media">
-            <span class="badge sale">۲۰٪ تخفیف</span>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/><path d="M2 10.5h20"/><path d="M9 8.7c0-1.8.6-3 1.4-4M15 8.7c0-1.8-.6-3-1.4-4"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">قابلمه و ماهیتابه</span>
-            <h3>قابلمه مسی دسته چوبی</h3>
-            <div class="price-row">
-              <span class="price"><span class="price-old">۳٬۰۶۰٬۰۰۰</span>۲٬۴۵۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-media">
-            <span class="badge new">جدید</span>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M5 19 18 6M14 3l7 7-2 2-7-7ZM3 21l3-1 5-5-2-2-5 5Z"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">چاقو و ابزار برش</span>
-            <h3>ست چاقوی آشپزخانه ۵ تکه</h3>
-            <div class="price-row">
-              <span class="price">۱٬۸۹۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-media">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M5 8h11a3 3 0 0 1 0 6h-1M5 8v8a3 3 0 0 0 3 3h5a3 3 0 0 0 3-3v-1M5 8 4 5M9 5V3M13 5V3"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">سرویس چای و قهوه</span>
-            <h3>سماور برقی کلاسیک</h3>
-            <div class="price-row">
-              <span class="price">۳٬۲۰۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-media">
-            <span class="badge sale">۱۵٪ تخفیف</span>
-            <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="8" ry="3"/><path d="M4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">ظروف سرو و پذیرایی</span>
-            <h3>سرویس چای‌خوری ۶ نفره</h3>
-            <div class="price-row">
-              <span class="price"><span class="price-old">۱٬۱۵۰٬۰۰۰</span>۹۸۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-media">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/><path d="M2 10.5h20"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">قابلمه و ماهیتابه</span>
-            <h3>ماهیتابه گرانیتی ۲۸ سانتی</h3>
-            <div class="price-row">
-              <span class="price">۱٬۱۵۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="product-card">
-          <div class="product-media">
-            <span class="badge new">جدید</span>
-            <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
-          </div>
-          <div class="product-info">
-            <span class="cat-label">ظروف سرو و پذیرایی</span>
-            <h3>ظرف سرو سرامیکی سه‌تکه</h3>
-            <div class="price-row">
-              <span class="price">۷۶۰٬۰۰۰<small>تومان</small></span>
-              <button class="add-btn" aria-label="افزودن به سبد خرید">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-          </div>
-        </article>
-
-      </div>
-
-      <div class="products-footer">
-        <a href="#" class="btn btn-primary">مشاهده همه محصولات</a>
-      </div>
     </div>
-  </section>
 
-  <div class="tile-divider" aria-hidden="true">
-    <svg viewBox="0 0 200 14" preserveAspectRatio="xMidYMid slice"></svg>
   </div>
+</section>
+
+<!-- ============================================================
+     PRODUCTS
+     ============================================================ -->
+<section class="products" id="products">
+  <div class="wrap">
+
+    <div class="section-head">
+
+      <div>
+        <span class="eyebrow">پرفروش‌ترین‌ها</span>
+        <h2>محصولات پیشنهادی آیتک هوم</h2>
+      </div>
+
+      <p>
+        انتخاب‌شده از میان پرفروش‌ترین و پرامتیازترین کالاهای فروشگاه.
+      </p>
+
+    </div>
+
+
+    <div class="product-grid">
+
+      {% for product in popular_products %}
+
+        <article class="product-card">
+
+          <!-- Product Image -->
+          <div class="product-media">
+
+            {% if product.discount_price %}
+              <span class="badge sale">
+                تخفیف ویژه
+              </span>
+            {% endif %}
+
+
+            <a
+              href="{% url 'product_detail' slug=product.slug %}"
+              style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"
+            >
+
+              {% if product.main_image %}
+
+                <img
+                  src="{{ product.main_image.url }}"
+                  alt="{{ product.title }}"
+                  loading="lazy"
+                  style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                    border-radius:inherit;
+                  "
+                >
+
+              {% else %}
+
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  style="width:60px;height:60px;"
+                >
+                  <path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/>
+                  <path d="M2 10.5h20"/>
+                </svg>
+
+              {% endif %}
+
+            </a>
+
+          </div>
+
+
+          <!-- Product Info -->
+          <div class="product-info">
+
+            {% if product.category %}
+              <span class="cat-label">
+                {{ product.category.name }}
+              </span>
+            {% endif %}
+
+
+            <h3>
+              <a
+                href="{% url 'product_detail' slug=product.slug %}"
+                style="color:inherit; text-decoration:none;"
+              >
+                {{ product.title }}
+              </a>
+            </h3>
+
+
+            <!-- Rating -->
+            {% if product.rating %}
+              <div
+                style="
+                  margin-top:8px;
+                  font-size:13px;
+                  color:#b8860b;
+                "
+              >
+                ★ {{ product.rating }}
+              </div>
+            {% endif %}
+
+
+            <!-- Price -->
+            <div class="price-row">
+
+              <span class="price">
+
+                {% if product.discount_price %}
+
+                  <span class="price-old">
+                    {{ product.price|floatformat:0 }}
+                  </span>
+
+                  {{ product.final_price|floatformat:0 }}
+
+                {% else %}
+
+                  {{ product.final_price|floatformat:0 }}
+
+                {% endif %}
+
+                <small>تومان</small>
+
+              </span>
+
+
+              {% if product.in_stock %}
+
+                <form
+                  method="post"
+                  action="{% url 'cart_add' product_id=product.id %}"
+                  style="margin:0;"
+                >
+
+                  {% csrf_token %}
+
+                  <input
+                    type="hidden"
+                    name="quantity"
+                    value="1"
+                  >
+
+                  <button
+                    type="submit"
+                    class="add-btn"
+                    aria-label="افزودن به سبد خرید"
+                    title="افزودن به سبد خرید"
+                  >
+
+                    <svg
+                      class="icon"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 5v14"/>
+                      <path d="M5 12h14"/>
+                    </svg>
+
+                  </button>
+
+                </form>
+
+              {% else %}
+
+                <span
+                  style="
+                    font-size:12px;
+                    color:var(--danger);
+                    font-weight:700;
+                  "
+                >
+                  ناموجود
+                </span>
+
+              {% endif %}
+
+            </div>
+
+          </div>
+
+        </article>
+
+      {% empty %}
+
+        <div
+          class="card"
+          style="
+            grid-column:1 / -1;
+            text-align:center;
+            padding:50px 20px;
+          "
+        >
+
+          <h3>هنوز محصولی ثبت نشده است</h3>
+
+          <p style="margin-top:10px;">
+            محصولات فعال فروشگاه از طریق پنل مدیریت در این قسمت نمایش داده می‌شوند.
+          </p>
+
+        </div>
+
+      {% endfor %}
+
+    </div>
+
+
+    <div class="products-footer">
+
+      <a
+        href="{% url 'product_list' %}"
+        class="btn btn-primary"
+      >
+        مشاهده همه محصولات
+      </a>
+
+    </div>
+
+  </div>
+</section>
+
+
+<div class="tile-divider" aria-hidden="true">
+  <svg
+    viewBox="0 0 200 14"
+    preserveAspectRatio="xMidYMid slice"
+  ></svg>
+</div>
+
+
+<!-- ============================================================
+     SPECIAL DISCOUNTS
+     ============================================================ -->
+<section class="products" id="discounts">
+
+  <div class="wrap">
+
+    <div class="section-head">
+
+      <div>
+        <span class="eyebrow gold">تخفیفات ویژه</span>
+        <h2>فرصت‌های جذاب آیتک هوم</h2>
+      </div>
+
+      <p>
+        محصولاتی که الان با قیمت ویژه در دسترس هستند.
+      </p>
+
+    </div>
+
+
+    <div class="product-grid">
+
+      {% for product in discounted_products %}
+
+        <article class="product-card">
+
+          <div class="product-media">
+
+            <span class="badge sale">
+              تخفیف
+            </span>
+
+            <a
+              href="{% url 'product_detail' slug=product.slug %}"
+              style="
+                width:100%;
+                height:100%;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+              "
+            >
+
+              {% if product.main_image %}
+
+                <img
+                  src="{{ product.main_image.url }}"
+                  alt="{{ product.title }}"
+                  loading="lazy"
+                  style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                    border-radius:inherit;
+                  "
+                >
+
+              {% else %}
+
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  style="width:60px;height:60px;"
+                >
+                  <path d="M4 10.5c0-1 .8-1.8 1.8-1.8h12.4c1 0 1.8.8 1.8 1.8v.7c0 4.4-3.5 8-7.9 8h-.2c-4.4 0-7.9-3.6-7.9-8v-.7Z"/>
+                  <path d="M2 10.5h20"/>
+                </svg>
+
+              {% endif %}
+
+            </a>
+
+          </div>
+
+
+          <div class="product-info">
+
+            {% if product.category %}
+              <span class="cat-label">
+                {{ product.category.name }}
+              </span>
+            {% endif %}
+
+
+            <h3>
+              <a
+                href="{% url 'product_detail' slug=product.slug %}"
+                style="color:inherit;text-decoration:none;"
+              >
+                {{ product.title }}
+              </a>
+            </h3>
+
+
+            <div class="price-row">
+
+              <span class="price">
+
+                <span class="price-old">
+                  {{ product.price|floatformat:0 }}
+                </span>
+
+                {{ product.final_price|floatformat:0 }}
+
+                <small>تومان</small>
+
+              </span>
+
+
+              {% if product.in_stock %}
+
+                <form
+                  method="post"
+                  action="{% url 'cart_add' product_id=product.id %}"
+                  style="margin:0;"
+                >
+
+                  {% csrf_token %}
+
+                  <input
+                    type="hidden"
+                    name="quantity"
+                    value="1"
+                  >
+
+                  <button
+                    type="submit"
+                    class="add-btn"
+                    aria-label="افزودن به سبد خرید"
+                  >
+
+                    <svg
+                      class="icon"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 5v14"/>
+                      <path d="M5 12h14"/>
+                    </svg>
+
+                  </button>
+
+                </form>
+
+              {% else %}
+
+                <span
+                  style="
+                    font-size:12px;
+                    color:var(--danger);
+                    font-weight:700;
+                  "
+                >
+                  ناموجود
+                </span>
+
+              {% endif %}
+
+            </div>
+
+          </div>
+
+        </article>
+
+      {% empty %}
+
+        <div
+          class="card"
+          style="
+            grid-column:1/-1;
+            text-align:center;
+            padding:40px;
+          "
+        >
+          <p>در حال حاضر محصول تخفیف‌داری وجود ندارد.</p>
+        </div>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+</section>
 
   <!-- ============================================================
        TRUST / USP
@@ -963,7 +1275,7 @@
       <div>
         <h4>تماس با ما</h4>
         <ul class="footer-contact">
-          <li><svg class="icon" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="none"/></svg>تهران، خیابان ولیعصر، پلاک ۱۲۰</li>
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="none"/></svg>تبریز، ولیعصر، برج تجارت جهانی،طبقه 9، پلاک 10</li>
           <li><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h4l2 5-2.5 1.5a12 12 0 0 0 5 5L14 14l5 2v4a2 2 0 0 1-2 2c-8.3 0-15-6.7-15-15a2 2 0 0 1 2-2Z"/></svg>۰۲۱-۱۲۳۴۵۶۷۸</li>
           <li><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>support@dizi-shop.ir</li>
         </ul>

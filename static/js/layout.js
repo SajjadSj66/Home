@@ -29,7 +29,7 @@ function renderLayout(activePage) {
             loggedIn
               ? `<span style="font-size:.85rem;color:var(--muted);direction:ltr">${user?.phone || ""}</span>
                  <button class="btn ghost sm" onclick="logout()">خروج</button>`
-              : `<a class="btn ghost sm" href="login.html">ورود</a>`
+              : `<a class="btn ghost sm" href="register.html">ورود</a>`
           }
           <a href="cart.html" class="icon-btn" aria-label="سبد خرید">
             🛒<span id="cart-badge" class="badge" style="display:none">0</span>

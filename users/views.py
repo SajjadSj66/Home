@@ -2,10 +2,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
-# from payments.models import Payment
-from .forms import MobileForm, OTPVerificationForm, SupportForm
+from shop.models import *
+from .forms import *
 from .models import *
-# from plans.models import *
 from .utils import *
 import random
 import logging
@@ -14,13 +13,22 @@ from django.views.decorators.cache import never_cache
 from django.urls import reverse
 
 
-# Create your views here.
+
 def index(request):
-    return render(request, 'index.html')
+    categories = Category.objects.all()[:8]
+    latest_products = Product.objects.filter(is_active=True).select_related("category", "brand").order_by("-created_at")[:8]
+    discounted_products = Product.objects.filter(is_active=True, discount_price__isnull=False).select_related("category", "brand").order_by("-created_at")[:8]
+    popular_products = Product.objects.filter(is_active=True, rating__gt=0).select_related("category", "brand").order_by("-rating", "-created_at")[:4]
+
+    return render(request, "index.html", {
+        "categories": categories,
+        "latest_products": latest_products,
+        "discounted_products": discounted_products,
+        "popular_products": popular_products,
+    })
 
 
 logger = logging.getLogger(__name__)
-
 
 @never_cache
 def register_view(request):
@@ -66,7 +74,6 @@ def register_view(request):
                 try:
                     PhoneOTP.objects.create(user=user, otp=otp_code)
                     send_otp_code(user.mobile, otp_code)
-                    print(send_otp_code)
                     messages.success(request, "کد جدید ارسال شد.")
                 except Exception as e:
                     logger.exception("Failed to send OTP to %s: %s", user.mobile, e)
@@ -134,7 +141,6 @@ def register_view(request):
                 try:
                     PhoneOTP.objects.create(user=user, otp=otp_code)
                     send_otp_code(mobile, otp_code)
-                    print(otp_code)
                     messages.success(request, "کد تایید ارسال شد.")
                 except Exception as e:
                     logger.exception("Failed to send OTP to %s: %s", mobile, e)
@@ -151,17 +157,49 @@ def register_view(request):
 
 @login_required
 def dashboard_view(request):
-    # user_plans = request.user.plans.select_related("plan")
-    orders = request.user.orders.select_related("user")
-    # transactions = Payment.objects.filter(user=request.user).order_by("-created_at")[:5]  # تراکنش‌های واقعی
-    # plans_available = Plan.objects.filter(is_active=True)  # برای اضافه کردن پلن جدید
+    user = request.user
 
-    return render(request, "dashboard.html", {
-        # "user_plans": user_plans,
-        "orders": orders,
-        # "transactions": transactions,
-        # "plans_available": plans_available
-    })
+    # ---------- فرم پروفایل ----------
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✓ تغییرات با موفقیت ذخیره شد')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'لطفاً خطاهای فرم را برطرف کنید.')
+    else:
+        form = ProfileForm(instance=user)
+
+    # ---------- سفارش‌ها ----------
+    orders = []
+    if hasattr(user, 'orders'):
+        orders = user.orders.select_related('user').order_by('-created_at')
+
+    # ---------- آدرس‌ها ----------
+    addresses = []
+    if hasattr(user, 'addresses'):
+        addresses = user.addresses.all()
+
+    # ---------- تیکت‌های پشتیبانی ----------
+    tickets = []
+    if hasattr(user, 'tickets'):
+        tickets = user.tickets.order_by('-created_at')[:5]
+
+    # ---------- تب فعال ----------
+    active_tab = request.GET.get('tab', 'profile')
+
+    context = {
+        'user': user,
+        'form': form,
+        'orders': orders,
+        'addresses': addresses,
+        'tickets': tickets,
+        'active_tab': active_tab,
+        'today': timezone.now(),
+    }
+    return render(request, 'dashboard.html', context)
+
 
 
 @login_required
@@ -202,5 +240,3 @@ def blog(request):
 
 def security(request):
     return render(request, "gavanin.html")
-
-

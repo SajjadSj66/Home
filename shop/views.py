@@ -137,9 +137,8 @@ def cart_remove(request, item_id):
 
 @login_required
 def checkout(request):
-    cart = Cart.objects.get_or_create(
-        user=request.user
-    )[0]
+    # ---------- سبد خرید ----------
+    cart = Cart.objects.get_or_create(user=request.user)[0]
 
     items = list(
         cart.items
@@ -148,121 +147,116 @@ def checkout(request):
     )
 
     if not items:
-        messages.warning(
-            request,
-            "سبد خرید شما خالی است.",
-        )
+        messages.warning(request, "سبد خرید شما خالی است.")
         return redirect("cart_detail")
 
+    # ============================================================
+    #                       POST
+    # ============================================================
     if request.method == "POST":
 
-        form = OrderForm(
-            request.POST
-        )
+        # 👇👇👇 تغییر اصلی: user رو پاس می‌دیم
+        form = OrderForm(request.POST, user=request.user)
 
         if form.is_valid():
 
-            with transaction.atomic():
+            try:
+                with transaction.atomic():
 
-                cart = (
-                    Cart.objects
-                    .select_for_update()
-                    .get(
-                        user=request.user
-                    )
-                )
-
-                cart_items = list(
-                    CartItem.objects
-                    .select_for_update()
-                    .select_related("product")
-                    .filter(cart=cart)
-                )
-
-                if not cart_items:
-                    messages.warning(
-                        request,
-                        "سبد خرید شما خالی است.",
-                    )
-                    return redirect(
-                        "cart_detail"
+                    # قفل روی سبد کاربر
+                    cart = (
+                        Cart.objects
+                        .select_for_update()
+                        .get(user=request.user)
                     )
 
-                total_price = 0
-
-                for item in cart_items:
-
-                    product = item.product
-
-                    if not product.is_active:
-                        messages.error(
-                            request,
-                            f"محصول «{product.title}» "
-                            "دیگر قابل خرید نیست.",
-                        )
-                        return redirect(
-                            "cart_detail"
-                        )
-
-                    if item.quantity > product.stock_quantity:
-                        messages.error(
-                            request,
-                            f"موجودی «{product.title}» کافی نیست.",
-                        )
-                        return redirect(
-                            "cart_detail"
-                        )
-
-                    total_price += (
-                        item.quantity *
-                        product.final_price
+                    cart_items = list(
+                        CartItem.objects
+                        .select_for_update()
+                        .select_related("product")
+                        .filter(cart=cart)
                     )
 
-                # -----------------------------------------
-                # ساخت سفارش
-                # -----------------------------------------
+                    if not cart_items:
+                        messages.warning(request, "سبد خرید شما خالی است.")
+                        return redirect("cart_detail")
 
-                order = form.save(
-                    commit=False
-                )
+                    # ---------- اعتبارسنجی محصولات + محاسبه مبلغ ----------
+                    total_price = 0
 
-                order.user = request.user
-                order.status = Order.Status.PENDING
-                order.total_price = total_price
+                    for item in cart_items:
+                        product = item.product
 
-                order.save()
+                        if not product.is_active:
+                            messages.error(
+                                request,
+                                f"محصول «{product.title}» دیگر قابل خرید نیست.",
+                            )
+                            return redirect("cart_detail")
 
-                # -----------------------------------------
-                # ساخت آیتم‌های سفارش
-                # -----------------------------------------
+                        if item.quantity > product.stock_quantity:
+                            messages.error(
+                                request,
+                                f"موجودی «{product.title}» کافی نیست.",
+                            )
+                            return redirect("cart_detail")
 
-                for item in cart_items:
+                        total_price += item.quantity * product.final_price
 
-                    OrderItem.objects.create(
+                    # ---------- ساخت سفارش ----------
+                    order = form.save(commit=False)
+                    order.user = request.user
+                    order.status = Order.Status.PENDING
+                    order.total_price = total_price
+                    order.save()
+
+                    # ---------- ساخت آیتم‌های سفارش ----------
+                    OrderItem.objects.bulk_create([
+                        OrderItem(
+                            order=order,
+                            product=item.product,
+                            quantity=item.quantity,
+                            price_at_purchase=item.product.final_price,
+                        )
+                        for item in cart_items
+                    ])
+
+                    # ---------- کاهش موجودی ----------
+                    for item in cart_items:
+                        product = item.product
+                        product.stock_quantity -= item.quantity
+                        product.save(update_fields=["stock_quantity"])
+
+                    # ---------- ساخت Payment ----------
+                    payment = Payment.objects.create(
                         order=order,
-                        product=item.product,
-                        quantity=item.quantity,
-                        price_at_purchase=item.product.final_price,
+                        amount=total_price,
+                        status=Payment.Status.PENDING,
                     )
 
-                # -----------------------------------------
-                # ساخت Payment
-                # -----------------------------------------
+                    # ---------- خالی کردن سبد ----------
+                    cart_items_qs = CartItem.objects.filter(cart=cart)
+                    cart_items_qs.delete()
 
-                payment = Payment.objects.create(
-                    order=order,
-                    amount=total_price,
-                    status=Payment.Status.PENDING,
-                )
+            except Exception as e:
+                messages.error(request, "خطایی رخ داد. لطفاً دوباره تلاش کنید.")
+                # برای دیباگ: print(e)
+                return redirect("cart_detail")
 
-            # بعد از commit به مرحله پرداخت برو
-            return redirect(
-                "payment_start",
-                order_id=order.id,
-            )
+            # بعد از commit موفق → مرحله پرداخت
+            messages.success(request, "✓ سفارش شما با موفقیت ثبت شد.")
+            return redirect("payment_start", order_id=order.id)
 
+        else:
+            # فرم خطا داره → پیام خطا نمایش بده
+            messages.error(request, "لطفاً خطاهای فرم را برطرف کنید.")
+
+    # ============================================================
+    #                       GET
+    # ============================================================
     else:
-        form = OrderForm()
+        # 👇👇👇 تغییر اصلی: user رو پاس می‌دیم تا prefill بشه
+        form = OrderForm(user=request.user)
 
     return render(
         request,

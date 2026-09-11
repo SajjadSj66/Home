@@ -1,4 +1,4 @@
-{% extends "shop/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}تسویه حساب — خانه لوازم{% endblock %}
 {% block nav_cart %}active{% endblock %}
@@ -14,19 +14,69 @@
       <form method="post" novalidate>
         {% csrf_token %}
 
+        <!-- نام گیرنده -->
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.recipient_first_name.id_for_label }}">
+              نام گیرنده <span class="req">*</span>
+            </label>
+            {{ form.recipient_first_name }}
+            {% if form.recipient_first_name.errors %}
+              <div class="field-error">{{ form.recipient_first_name.errors|join:" " }}</div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.recipient_last_name.id_for_label }}">نام خانوادگی گیرنده</label>
+            {{ form.recipient_last_name }}
+            {% if form.recipient_last_name.errors %}
+              <div class="field-error">{{ form.recipient_last_name.errors|join:" " }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- شماره تماس (از پروفایل پر می‌شه) -->
         <div class="field">
-          <label for="{{ form.address.id_for_label }}">آدرس کامل تحویل کالا</label>
+          <label for="{{ form.phone.id_for_label }}">
+            شماره تماس <span class="req">*</span>
+            {% if user.mobile %}
+              <small class="hint">(از حساب شما: {{ user.mobile }})</small>
+            {% endif %}
+          </label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <div class="field-error">{{ form.phone.errors|join:" " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- آدرس کامل -->
+        <div class="field">
+          <label for="{{ form.address.id_for_label }}">
+            آدرس کامل تحویل کالا <span class="req">*</span>
+          </label>
           {{ form.address }}
           {% if form.address.errors %}
             <div class="field-error">{{ form.address.errors|join:" " }}</div>
           {% endif %}
         </div>
 
+        <!-- کد پستی -->
         <div class="field">
-          <label for="{{ form.phone.id_for_label }}">شماره تماس</label>
-          {{ form.phone }}
-          {% if form.phone.errors %}
-            <div class="field-error">{{ form.phone.errors|join:" " }}</div>
+          <label for="{{ form.postal_code.id_for_label }}">کد پستی</label>
+          {{ form.postal_code }}
+          {% if form.postal_code.errors %}
+            <div class="field-error">{{ form.postal_code.errors|join:" " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- منبع ورود -->
+        <div class="field">
+          <label for="{{ form.referral_source.id_for_label }}">
+            از کجا با ما آشنا شدید؟
+          </label>
+          {{ form.referral_source }}
+          {% if form.referral_source.errors %}
+            <div class="field-error">{{ form.referral_source.errors|join:" " }}</div>
           {% endif %}
         </div>
 
@@ -51,4 +101,28 @@
     </div>
   </div>
 </div>
+
+<style>
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .req { color: #e53935; }
+  .hint {
+    color: #8a90a6;
+    font-size: .72rem;
+    font-weight: 400;
+    margin-inline-start: 6px;
+  }
+  .field-error {
+    color: #e53935;
+    font-size: .78rem;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  @media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}

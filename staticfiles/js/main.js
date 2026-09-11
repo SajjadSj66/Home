@@ -1,126 +1,172 @@
-// --- داده‌ی نمایشی: تا وقتی بک‌اند وصل نشده، صفحه با این داده کار می‌کنه ---
-const DEMO_CATEGORIES = [
-  { id: "fridge", name: "یخچال و فریزر" },
-  { id: "washer", name: "ماشین لباسشویی" },
-  { id: "oven", name: "اجاق گاز و فر" },
-  { id: "vacuum", name: "جاروبرقی" },
-  { id: "micro", name: "مایکروویو" },
+// ===== DATA =====
+const products = [
+  { id: 1, title: 'قابلمه نچسب ۲۴ سانتی', category: 'قابلمه', price: 450000, image: '🍲' },
+  { id: 2, title: 'سرخ‌کن برقی ۳.۵ لیتری', category: 'سرخ‌کن', price: 1200000, image: '🍟' },
+  { id: 3, title: 'آبمیوه‌گیری گریپ فروت', category: 'آبمیوه‌گیری', price: 780000, image: '🍊' },
+  { id: 4, title: 'اجاق گاز دو شعله', category: 'اجاق', price: 2300000, image: '🔥' },
+  { id: 5, title: 'مخلوط‌کن ۱۰۰۰ وات', category: 'مخلوط‌کن', price: 650000, image: '🥤' },
+  { id: 6, title: 'توری کباب‌پز استیل', category: 'کباب‌پز', price: 320000, image: '🥩' },
+  { id: 7, title: 'کتری برقی ۱.۷ لیتر', category: 'کتری', price: 890000, image: '☕' },
+  { id: 8, title: 'ماهی‌تابه گرانیتی', category: 'تابه', price: 560000, image: '🐟' },
+  { id: 9, title: 'ساندویچ‌ساز ۷۰۰ وات', category: 'ساندویچ‌ساز', price: 950000, image: '🥪' },
+  { id: 10, title: 'دستگاه اسپرسو ساز', category: 'اسپرسو', price: 3400000, image: '☕' },
 ];
 
-const DEMO_PRODUCTS = [
-  { id: 1, title: "یخچال ساید بای ساید ۲۴ فوت", category: "fridge", price: 48500000, image_url: "", in_stock: true, rating: 4.6 },
-  { id: 2, title: "ماشین لباسشویی ۸ کیلویی درب از جلو", category: "washer", price: 21900000, image_url: "", in_stock: true, rating: 4.2 },
-  { id: 3, title: "اجاق گاز ۵ شعله فردار", category: "oven", price: 15200000, image_url: "", in_stock: false, rating: 3.8 },
-  { id: 4, title: "جاروبرقی رباتیک نقشه‌ساز", category: "vacuum", price: 9800000, image_url: "", in_stock: true, rating: 4.4 },
-  { id: 5, title: "مایکروویو توکار ۳۴ لیتری", category: "micro", price: 7300000, image_url: "", in_stock: true, rating: 4.0 },
-  { id: 6, title: "فریزر ایستاده ۷ کشو", category: "fridge", price: 26400000, image_url: "", in_stock: true, rating: 3.9 },
-];
+const categories = ['همه', ...new Set(products.map(p => p.category))];
 
-let usingDemoData = false;
-let currentCategory = "";
-let currentSearch = "";
+// ===== STATE =====
+let activeCategory = 'همه';
+let searchQuery = '';
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-function energyRatingHTML(rating) {
-  // rating بین 0 تا 5 → درصد موقعیت روی نوار ۷ قسمتی
-  const pct = Math.max(4, Math.min(96, (rating / 5) * 100));
-  return `
-    <div class="energy-rating">
-      <div class="track">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-        <div class="marker" style="right:${pct}%"></div>
+// ===== DOM REFS =====
+const grid = document.getElementById('product-grid');
+const searchInput = document.getElementById('search-input');
+const categoryStrip = document.getElementById('category-strip');
+const cartCountEl = document.querySelector('.cart-count');
+
+// ===== RENDER FUNCTIONS =====
+function renderCategories() {
+  categoryStrip.innerHTML = categories.map(cat =>
+    `<span class="category-tag ${cat === activeCategory ? 'active' : ''}" data-category="${cat}">${cat}</span>`
+  ).join('');
+
+  document.querySelectorAll('.category-tag').forEach(el => {
+    el.addEventListener('click', () => {
+      activeCategory = el.dataset.category;
+      renderCategories();
+      renderProducts();
+    });
+  });
+}
+
+function renderProducts() {
+  const filtered = products.filter(p => {
+    const matchCategory = activeCategory === 'همه' || p.category === activeCategory;
+    const matchSearch = p.title.includes(searchQuery) || p.category.includes(searchQuery);
+    return matchCategory && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; color:#868e96;">هیچ محصولی یافت نشد.</p>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="product-card" data-id="${p.id}">
+      <div class="product-image">${p.image}</div>
+      <div class="product-info">
+        <div class="product-title">${p.title}</div>
+        <div class="product-category">${p.category}</div>
+        <div class="product-price">${p.price.toLocaleString()} تومان</div>
+        <div class="product-actions">
+          <button class="btn btn-add" data-id="${p.id}">افزودن به سبد</button>
+          <button class="btn btn-detail" data-id="${p.id}">مشاهده</button>
+        </div>
       </div>
-      <span class="label">محبوبیت ${rating.toFixed(1)} / ۵</span>
+    </div>
+  `).join('');
+
+  // Event listeners for add-to-cart
+  document.querySelectorAll('.btn-add').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = parseInt(btn.dataset.id);
+      addToCart(id);
+      e.stopPropagation();
+    });
+  });
+
+  // Detail buttons (just alert for demo)
+  document.querySelectorAll('.btn-detail').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = parseInt(btn.dataset.id);
+      const product = products.find(p => p.id === id);
+      alert(`🛒 ${product.title}\n💰 ${product.price.toLocaleString()} تومان\nدسته: ${product.category}`);
+      e.stopPropagation();
+    });
+  });
+}
+
+// ===== CART =====
+function addToCart(productId) {
+  const existing = cart.find(item => item.id === productId);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ id: productId, quantity: 1 });
+  }
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+  if (cartCountEl) cartCountEl.textContent = total;
+}
+
+// ===== SEARCH =====
+searchInput.addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  renderProducts();
+});
+
+// ===== HEADER & FOOTER (dynamic) =====
+function renderHeader() {
+  const header = document.getElementById('site-header');
+  header.innerHTML = `
+    <div class="container header-inner">
+      <div class="logo">خانه<span>لوازم</span></div>
+      <ul class="nav-menu">
+        <li><a href="#catalog">محصولات</a></li>
+        <li><a href="#">تخفیف‌ها</a></li>
+        <li><a href="#">تماس با ما</a></li>
+      </ul>
+      <div class="header-actions">
+        <span class="cart-icon">🛒<span class="cart-count">0</span></span>
+      </div>
+    </div>
+  `;
+  // re-bind cart badge
+  const newCartCount = document.querySelector('.cart-count');
+  if (newCartCount) {
+    const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+    newCartCount.textContent = total;
+  }
+}
+
+function renderFooter() {
+  const footer = document.getElementById('site-footer');
+  footer.innerHTML = `
+    <div class="container footer-inner">
+      <div class="footer-col">
+        <h4>خانه لوازم</h4>
+        <p>فروشگاه تخصصی لوازم آشپزخانه با بهترین قیمت و ضمانت اصالت</p>
+      </div>
+      <div class="footer-col">
+        <h4>دسترسی سریع</h4>
+        <a href="#">محصولات</a><br>
+        <a href="#">درباره ما</a><br>
+        <a href="#">تماس</a>
+      </div>
+      <div class="footer-col">
+        <h4>تماس</h4>
+        <p>تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+        <p>ایمیل: info@khaneh-lavazem.ir</p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      &copy; ۱۴۰۵ تمامی حقوق محفوظ است.
     </div>
   `;
 }
 
-function productCardHTML(p) {
-  return `
-    <a class="card" href="product.html?id=${p.id}">
-      <div class="thumb">
-        ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : `<span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>`}
-      </div>
-      <span class="cat">${categoryLabel(p.category)}</span>
-      <h3>${p.title}</h3>
-      ${energyRatingHTML(p.rating ?? 4)}
-      <div class="bottom">
-        <span class="price">${formatPrice(p.price)}</span>
-        ${p.in_stock ? "" : `<span class="stock out">ناموجود</span>`}
-      </div>
-    </a>
-  `;
+// ===== INIT =====
+function init() {
+  renderHeader();
+  renderFooter();
+  renderCategories();
+  renderProducts();
+  updateCartBadge();
 }
 
-let categoriesCache = DEMO_CATEGORIES;
-function categoryLabel(id) {
-  const c = categoriesCache.find(c => c.id === id);
-  return c ? c.name : id;
-}
-
-async function loadCategories() {
-  const strip = document.getElementById("category-strip");
-  try {
-    const cats = await apiRequest("/categories");
-    categoriesCache = cats;
-  } catch (err) {
-    categoriesCache = DEMO_CATEGORIES;
-    usingDemoData = true;
-  }
-  strip.innerHTML =
-    `<button class="category-chip ${currentCategory === "" ? "active" : ""}" data-cat="">همه</button>` +
-    categoriesCache.map(c => `<button class="category-chip ${currentCategory === c.id ? "active" : ""}" data-cat="${c.id}">${c.name}</button>`).join("");
-
-  strip.querySelectorAll(".category-chip").forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentCategory = btn.dataset.cat;
-      loadProducts();
-      strip.querySelectorAll(".category-chip").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    });
-  });
-}
-
-async function loadProducts() {
-  const grid = document.getElementById("product-grid");
-  grid.innerHTML = `<div class="empty-state">در حال بارگذاری محصولات...</div>`;
-
-  let products;
-  try {
-    const params = new URLSearchParams();
-    if (currentCategory) params.set("category", currentCategory);
-    if (currentSearch) params.set("search", currentSearch);
-    const data = await apiRequest(`/products?${params.toString()}`);
-    products = data.items ?? data; // بسته به اینکه بک‌اند pagination بده یا آرایه‌ی خام
-  } catch (err) {
-    usingDemoData = true;
-    products = DEMO_PRODUCTS.filter(p => {
-      const matchCat = !currentCategory || p.category === currentCategory;
-      const matchSearch = !currentSearch || p.title.includes(currentSearch);
-      return matchCat && matchSearch;
-    });
-  }
-
-  const demoNote = document.getElementById("demo-note");
-  if (demoNote) demoNote.style.display = usingDemoData ? "block" : "none";
-
-  if (!products.length) {
-    grid.innerHTML = `<div class="empty-state">محصولی با این مشخصات پیدا نشد.</div>`;
-    return;
-  }
-  grid.innerHTML = products.map(productCardHTML).join("");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  renderLayout("home");
-  loadCategories().then(loadProducts);
-
-  const searchInput = document.getElementById("search-input");
-  let debounce;
-  searchInput.addEventListener("input", () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(() => {
-      currentSearch = searchInput.value.trim();
-      loadProducts();
-    }, 350);
-  });
-});
+document.addEventListener('DOMContentLoaded', init);

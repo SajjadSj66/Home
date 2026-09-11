@@ -1,6 +1,59 @@
 from django import forms
-from .models import User, Support
+from .models import *
 import re
+from django.core.exceptions import ValidationError
+
+
+
+class ProfileForm(forms.ModelForm):
+    """فرم ویرایش پروفایل کاربر - مطابق HTML داشبورد"""
+
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'last_name', 'mobile', 'email',
+            'national_code', 'birth_date', 'gender', 'city', 'avatar',
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-input', 'placeholder': 'نام خود را وارد کنید'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-input', 'placeholder': 'نام خانوادگی'
+            }),
+            'mobile': forms.TextInput(attrs={
+                'class': 'form-input', 'placeholder': '09123456789',
+                'readonly': 'readonly',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-input', 'placeholder': 'example@mail.com'
+            }),
+            'national_code': forms.TextInput(attrs={
+                'class': 'form-input', 'placeholder': 'کد ملی', 'maxlength': '10'
+            }),
+            'birth_date': forms.DateInput(attrs={
+                'class': 'form-input', 'type': 'date'
+            }),
+            'gender': forms.Select(attrs={'class': 'form-input'}),
+            'city': forms.TextInput(attrs={
+                'class': 'form-input', 'placeholder': 'شهر'
+            }),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-input'}),
+        }
+
+    def clean_mobile(self):
+        mobile = self.cleaned_data.get('mobile')
+        if mobile and not mobile.startswith('09'):
+            raise ValidationError('شماره موبایل باید با ۰۹ شروع شود.')
+        if mobile and len(mobile) != 11:
+            raise ValidationError('شماره موبایل باید ۱۱ رقم باشد.')
+        return mobile
+
+    def clean_national_code(self):
+        code = self.cleaned_data.get('national_code')
+        if code and (not code.isdigit() or len(code) != 10):
+            raise ValidationError('کد ملی باید ۱۰ رقم عددی باشد.')
+        return code
 
 # ----------------------------
 # فرم ورود شماره موبایل

@@ -38,13 +38,13 @@ function logout() {
 // اگه صفحه فقط برای کاربر لاگین‌کرده است و لاگین نکرده، بفرستش صفحه ورود
 function requireAuth() {
   if (!isLoggedIn()) {
-    window.location.href = `login.html?next=${encodeURIComponent(window.location.pathname.split("/").pop())}`;
+    window.location.href = `register.html?next=${encodeURIComponent(window.location.pathname.split("/").pop())}`;
   }
 }
 
 // اگه صفحه فقط برای ادمینه
 function requireAdmin() {
   if (!isLoggedIn() || !isAdmin()) {
-    window.location.href = "login.html";
+    window.location.href = "register.html";
   }
 }

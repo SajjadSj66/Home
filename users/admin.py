@@ -5,31 +5,43 @@ from .models import User, Support
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    # ستون‌هایی که در لیست نمایش داده می‌شن
-    list_display = ("mobile", "first_name", "last_name", "is_active", "is_verified", "is_staff", "data_joined")
-    list_filter = ("is_active", "is_verified", "is_staff")
-    search_fields = ("mobile", "first_name", "last_name")
-    ordering = ("-data_joined",)
-
-    # برای فرم داخل ادمین
-    fieldsets = (
-        ("اطلاعات کاربری", {"fields": ("mobile", "first_name", "last_name", "password")}),
-        ("دسترسی‌ها", {"fields": ("is_active", "is_verified", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        ("تاریخ‌ها", {"fields": ("data_joined",)}),
+    list_display = (
+        'mobile', 'first_name', 'last_name',
+        'customer_level', 'points', 'is_active', 'is_verified', 'date_joined',
     )
-    add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("mobile", "password1", "password2", "is_active", "is_staff", "is_superuser"),
+    list_filter = ('customer_level', 'gender', 'is_active', 'is_verified', 'is_staff')
+    search_fields = ('mobile', 'first_name', 'last_name', 'email', 'national_code')
+    ordering = ('-date_joined',)
+
+    fieldsets = (
+        (None, {'fields': ('mobile', 'password')}),
+        (('اطلاعات شخصی'), {
+            'fields': (
+                'first_name', 'last_name', 'email',
+                'national_code', 'birth_date', 'gender',
+                'city', 'avatar',
+            )
+        }),
+        (('باشگاه مشتریان'), {
+            'fields': ('points', 'customer_level')
+        }),
+        (('وضعیت حساب'), {
+            'fields': ('is_active', 'is_verified', 'is_staff', 'is_superuser',
+                       'groups', 'user_permissions')
+        }),
+        (('تاریخ‌ها'), {
+            'fields': ('last_login', 'date_joined', 'updated_at')
         }),
     )
 
-    readonly_fields = ("data_joined",)
+    readonly_fields = ('date_joined', 'updated_at', 'last_login')
 
-    class Meta:
-        verbose_name = "کاربر"
-        verbose_name_plural = "مدیریت کاربران"
-
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('mobile', 'password1', 'password2'),
+        }),
+    )
 
 @admin.register(Support)
 class SupportAdmin(admin.ModelAdmin):

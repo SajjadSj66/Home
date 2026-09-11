@@ -328,64 +328,78 @@ class AddToCartForm(forms.Form):
 # =========================================================
 
 class OrderForm(forms.ModelForm):
-    """
-    فرم نهایی کردن خرید
-    """
+    """فرم تسویه حساب — با prefill از اطلاعات کاربر لاگین‌شده"""
 
     class Meta:
         model = Order
-
         fields = [
-            "address",
+            "recipient_first_name",
+            "recipient_last_name",
             "phone",
+            "address",
+            "postal_code",
+            "referral_source",
         ]
-
-        labels = {
-            "address": "آدرس کامل تحویل کالا",
-            "phone": "شماره تماس",
-        }
-
         widgets = {
-            "address": forms.Textarea(
-                attrs={
-                    "rows": 4,
-                    "placeholder": (
-                        "استان، شهر، خیابان، پلاک، واحد..."
-                    ),
-                }
-            ),
-
-            "phone": forms.TextInput(
-                attrs={
-                    "placeholder": "09xxxxxxxxx",
-                    "inputmode": "tel",
-                    "maxlength": "11",
-                }
-            ),
+            "recipient_first_name": forms.TextInput(attrs={
+                "class": "form-input",
+                "placeholder": "مثلاً: سارا",
+                "autocomplete": "given-name",
+            }),
+            "recipient_last_name": forms.TextInput(attrs={
+                "class": "form-input",
+                "placeholder": "مثلاً: محمدی",
+                "autocomplete": "family-name",
+            }),
+            "phone": forms.TextInput(attrs={
+                "class": "form-input",
+                "placeholder": "09123456789",
+                "inputmode": "numeric",
+                "autocomplete": "tel",
+            }),
+            "address": forms.Textarea(attrs={
+                "class": "form-input",
+                "rows": 4,
+                "placeholder": "استان، شهر، خیابان، کوچه، پلاک، واحد…",
+                "autocomplete": "street-address",
+            }),
+            "postal_code": forms.TextInput(attrs={
+                "class": "form-input",
+                "placeholder": "۱۰ رقم",
+                "maxlength": "10",
+                "inputmode": "numeric",
+                "autocomplete": "postal-code",
+            }),
+            "referral_source": forms.Select(attrs={"class": "form-input"}),
         }
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+        # 👇 prefill از کاربر لاگین‌شده (فقط وقتی فرم جدید باز می‌شه، نه در POST)
+        if user and not self.is_bound:
+            self.fields["recipient_first_name"].initial = user.first_name
+            self.fields["recipient_last_name"].initial = user.last_name
+            self.fields["phone"].initial = user.mobile
+
+    # ---------- اعتبارسنجی ----------
     def clean_phone(self):
-        phone = self.cleaned_data["phone"].strip()
-
-        # تبدیل اعداد فارسی و عربی به انگلیسی
-        translation_table = str.maketrans(
-            "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
-            "01234567890123456789",
-        )
-
-        phone = phone.translate(translation_table)
-
-        # حذف فاصله
-        phone = phone.replace(" ", "")
-
-        if (
-            not phone.isdigit()
-            or len(phone) != 11
-            or not phone.startswith("09")
-        ):
+        phone = self.cleaned_data.get("phone", "").strip()
+        if not phone.isdigit() or not phone.startswith("09") or len(phone) != 11:
             raise forms.ValidationError(
-                "شماره موبایل معتبر نیست. "
-                "شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود."
+                "شماره موبایل باید با ۰۹ شروع شده و ۱۱ رقم باشد."
             )
-
         return phone
+
+    def clean_postal_code(self):
+        code = self.cleaned_data.get("postal_code", "").strip()
+        if code and (not code.isdigit() or len(code) != 10):
+            raise forms.ValidationError("کد پستی باید ۱۰ رقم عددی باشد.")
+        return code
+
+    def clean_recipient_first_name(self):
+        name = self.cleaned_data.get("recipient_first_name", "").strip()
+        if not name:
+            raise forms.ValidationError("نام گیرنده الزامی است.")
+        return name

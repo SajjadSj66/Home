@@ -264,13 +264,22 @@ class ProductSpec(models.Model):
 class Order(models.Model):
 
     class Status(models.TextChoices):
-        PENDING = "pending", "در انتظار پرداخت"
-        PAID = "paid", "پرداخت‌شده"
+        PENDING    = "pending",    "در انتظار پرداخت"
+        PAID       = "paid",       "پرداخت‌شده"
         PROCESSING = "processing", "در حال آماده‌سازی"
-        SHIPPED = "shipped", "ارسال‌شده"
-        DELIVERED = "delivered", "تحویل‌شده"
-        CANCELLED = "cancelled", "لغوشده"
+        SHIPPED    = "shipped",    "ارسال‌شده"
+        DELIVERED  = "delivered",  "تحویل‌شده"
+        CANCELLED  = "cancelled",  "لغوشده"
 
+    class ReferralSource(models.TextChoices):
+        INSTAGRAM = "instagram", "اینستاگرام"
+        TELEGRAM  = "telegram",  "تلگرام"
+        WHATSAPP  = "whatsapp",  "واتس‌اپ"
+        GOOGLE    = "google",    "گوگل"
+        FRIEND    = "friend",    "معرفی دوستان"
+        OTHER     = "other",     "سایر"
+
+    # ---------- کاربر ----------
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="کاربر",
@@ -278,8 +287,18 @@ class Order(models.Model):
         on_delete=models.CASCADE,
     )
 
-    address = models.TextField(
-        "آدرس تحویل",
+    # ---------- اطلاعات گیرنده (snapshot) ----------
+    recipient_first_name = models.CharField(
+        "نام گیرنده",
+        max_length=100,
+        default=""
+    )
+
+    recipient_last_name = models.CharField(
+        "نام خانوادگی گیرنده",
+        max_length=100,
+        blank=True,
+        default=""
     )
 
     phone = models.CharField(
@@ -287,6 +306,26 @@ class Order(models.Model):
         max_length=15,
     )
 
+    # ---------- آدرس ----------
+    address = models.TextField(
+        "آدرس کامل تحویل",
+    )
+
+    postal_code = models.CharField(
+        "کد پستی",
+        max_length=10,
+        blank=True,
+    )
+
+    # ---------- منبع ورود ----------
+    referral_source = models.CharField(
+        "از کجا با ما آشنا شدید؟",
+        max_length=20,
+        choices=ReferralSource.choices,
+        default=ReferralSource.OTHER,
+    )
+
+    # ---------- وضعیت و مبلغ ----------
     status = models.CharField(
         "وضعیت سفارش",
         max_length=20,
@@ -299,15 +338,9 @@ class Order(models.Model):
         default=0,
     )
 
-    created_at = models.DateTimeField(
-        "تاریخ ثبت",
-        auto_now_add=True,
-    )
-
-    updated_at = models.DateTimeField(
-        "آخرین به‌روزرسانی",
-        auto_now=True,
-    )
+    # ---------- تاریخ‌ها ----------
+    created_at = models.DateTimeField("تاریخ ثبت", auto_now_add=True)
+    updated_at = models.DateTimeField("آخرین به‌روزرسانی", auto_now=True)
 
     class Meta:
         verbose_name = "سفارش"
@@ -315,19 +348,21 @@ class Order(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"سفارش #{self.id} — {self.user}"
+        return f"سفارش #{self.id} — {self.recipient_full_name}"
 
-    def recalculate_total(self):
-        total = sum(
-            item.subtotal
-            for item in self.items.all()
-        )
+    @property
+    def recipient_full_name(self):
+        return f"{self.recipient_first_name} {self.recipient_last_name}".strip()
 
+    @property
+    def items_count(self):
+        return self.items.count()
+
+    def recalculate_total(self, commit=True):
+        total = sum(item.subtotal for item in self.items.all())
         self.total_price = total
-
-        self.save(
-            update_fields=["total_price"]
-        )
+        if commit:
+            self.save(update_fields=["total_price"])
 
 
 class OrderItem(models.Model):

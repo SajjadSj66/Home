@@ -3,66 +3,1508 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>داشبورد من — خانه لوازم</title>
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل کاربری | لوازم‌خونه</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============ اضافات برای Django ============ */
+  :root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --primary:#5b4bff;
+  --primary-2:#8b5cf6;
+  --text:#1e2235;
+  --muted:#8a90a6;
+  --border:#eceef6;
+  --radius:20px;
+  --shadow:0 10px 30px rgba(29,35,70,.07);
+  --shadow-lg:0 18px 45px -18px rgba(29,35,70,.25);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+  font-family:'Vazirmatn',system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+
+/* هاله‌های تزئینی پس‌زمینه */
+body::before,
+body::after{
+  content:'';
+  position:fixed;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  filter:blur(10px);
+}
+body::before{
+  width:620px;height:620px;
+  top:-260px;right:-180px;
+  background:radial-gradient(circle,rgba(91,75,255,.16),transparent 70%);
+}
+body::after{
+  width:520px;height:520px;
+  bottom:-240px;left:-160px;
+  background:radial-gradient(circle,rgba(168,85,247,.13),transparent 70%);
+}
+
+/* ============ نوار بالا ============ */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:60;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px 22px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+
+.icon-btn{
+  width:42px;height:42px;
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:none;
+  border-radius:13px;
+  background:#f3f4fd;
+  color:var(--text);
+  cursor:pointer;
+  transition:.25s;
+}
+.icon-btn:hover{background:#e9eaff;color:var(--primary)}
+.icon-btn svg{width:20px;height:20px}
+
+.menu-btn{display:none}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:var(--text);
+  flex-shrink:0;
+}
+.brand-icon{
+  width:42px;height:42px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  box-shadow:0 8px 20px -8px rgba(91,75,255,.9);
+}
+.brand-icon svg{width:22px;height:22px}
+.brand-text{font-weight:800;font-size:18px;letter-spacing:-.3px}
+.brand-text span{color:var(--primary)}
+
+.search{
+  flex:1;
+  max-width:420px;
+  position:relative;
+  margin-inline-start:8px;
+}
+.search svg{
+  position:absolute;
+  right:14px;top:50%;
+  transform:translateY(-50%);
+  width:18px;height:18px;
+  color:var(--muted);
+  pointer-events:none;
+}
+.search input{
+  width:100%;
+  padding:11px 44px 11px 16px;
+  border-radius:13px;
+  border:1.5px solid var(--border);
+  background:#fafbff;
+  font-family:inherit;
+  font-size:13.5px;
+  color:var(--text);
+  transition:.25s;
+}
+.search input::placeholder{color:#a9aec2}
+.search input:focus{
+  outline:none;
+  border-color:var(--primary);
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(91,75,255,.1);
+}
+
+.top-actions{
+  margin-inline-start:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.badge-dot{position:relative}
+.badge-dot::after{
+  content:'';
+  position:absolute;
+  top:8px;left:9px;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:#ff4d6d;
+  border:2px solid #fff;
+}
+
+/* ============ چیدمان ============ */
+.layout{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:22px;
+  max-width:1360px;
+  margin:0 auto;
+  padding:24px 22px 60px;
+  align-items:flex-start;
+}
+
+/* ============ سایدبار ============ */
+.sidebar{
+  width:300px;
+  flex:0 0 300px;
+  background:var(--card);
+  border-radius:26px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.8);
+  position:sticky;
+  top:88px;
+  max-height:calc(100vh - 112px);
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#e3e5f0 transparent;
+}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:#e3e5f0;border-radius:10px}
+
+.sidebar-close{
+  display:none;
+  position:absolute;
+  top:14px;left:14px;
+  width:36px;height:36px;
+  border:none;
+  border-radius:11px;
+  background:#f3f4fd;
+  color:var(--muted);
+  cursor:pointer;
+  place-items:center;
+}
+.sidebar-close svg{width:18px;height:18px}
+
+/* کارت پروفایل */
+.profile-card{
+  position:relative;
+  border-radius:22px;
+  padding:24px 16px 16px;
+  text-align:center;
+  background:linear-gradient(160deg,#5b4bff 0%,#7c5cf8 50%,#a855f7 100%);
+  color:#fff;
+  overflow:hidden;
+  margin-bottom:16px;
+  box-shadow:0 16px 34px -16px rgba(91,75,255,.85);
+}
+.profile-card::before{
+  content:'';
+  position:absolute;
+  width:170px;height:170px;
+  border-radius:50%;
+  background:rgba(255,255,255,.13);
+  top:-80px;left:-55px;
+}
+.profile-card::after{
+  content:'';
+  position:absolute;
+  width:120px;height:120px;
+  border-radius:50%;
+  background:rgba(255,255,255,.09);
+  bottom:-60px;right:-35px;
+}
+.avatar{
+  position:relative;
+  z-index:1;
+  width:76px;height:76px;
+  margin:0 auto 12px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  font-weight:700;
+  background:rgba(255,255,255,.22);
+  border:3px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(6px);
+}
+.pc-name{position:relative;z-index:1;font-size:17px;font-weight:700}
+.pc-phone{position:relative;z-index:1;font-size:12.5px;opacity:.85;direction:ltr;letter-spacing:.5px}
+.pc-badge{
+  position:relative;
+  z-index:1;
+  display:inline-block;
+  margin-top:10px;
+  padding:5px 14px;
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:600;
+  background:rgba(255,255,255,.2);
+  border:1px solid rgba(255,255,255,.3);
+}
+.pc-stats{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-around;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.22);
+}
+.pc-stats div{display:flex;flex-direction:column;gap:1px}
+.pc-stats strong{font-size:16px;font-weight:700}
+.pc-stats span{font-size:11px;opacity:.85}
+
+/* منو */
+.menu{display:flex;flex-direction:column;gap:6px}
+.menu-label{
+  font-size:11px;
+  font-weight:600;
+  color:#b0b5c8;
+  padding:12px 14px 4px;
+  letter-spacing:.4px;
+}
+.menu-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border-radius:15px;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  transition:.25s;
+  user-select:none;
+  border:none;
+  background:transparent;
+  font-family:inherit;
+  width:100%;
+  text-align:right;
+}
+.menu-item:hover{background:#f4f5fd;color:var(--text)}
+.menu-item .mi-icon{
+  width:34px;height:34px;
+  flex-shrink:0;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  background:#f3f4fd;
+  color:#8b8fa8;
+  transition:.25s;
+}
+.menu-item .mi-icon svg{width:18px;height:18px}
+.menu-item .mi-text{flex:1}
+.menu-item .mi-count{
+  font-size:11.5px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:999px;
+  background:#eef0ff;
+  color:var(--primary);
+}
+
+.menu-item.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  box-shadow:0 12px 24px -10px rgba(91,75,255,.9);
+}
+.menu-item.active .mi-icon{background:rgba(255,255,255,.22);color:#fff}
+.menu-item.active .mi-count{background:rgba(255,255,255,.25);color:#fff}
+
+.menu-item.danger{color:#ef4444}
+.menu-item.danger .mi-icon{background:#fef2f2;color:#ef4444}
+.menu-item.danger:hover{background:#fef2f2}
+.menu-item.danger:hover .mi-icon{background:#ffe4e4}
+
+.menu-divider{
+  height:1px;
+  background:var(--border);
+  margin:10px 6px;
+}
+
+/* ============ محتوا ============ */
+.content{
+  flex:1;
+  min-width:0;
+}
+
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1)}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.panel-head{margin-bottom:20px}
+.panel-head h2{
+  font-size:23px;
+  font-weight:800;
+  letter-spacing:-.4px;
+  position:relative;
+  display:inline-block;
+  padding-bottom:8px;
+}
+.panel-head h2::after{
+  content:'';
+  position:absolute;
+  bottom:0;right:0;
+  width:52px;height:4px;
+  border-radius:4px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-2));
+}
+.panel-head p{
+  color:var(--muted);
+  font-size:13.5px;
+  margin-top:10px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.8);
+  margin-bottom:18px;
+}
+.card-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+.card-title h3{font-size:16px;font-weight:700}
+.chip-soft{
+  font-size:11.5px;
+  font-weight:600;
+  padding:5px 12px;
+  border-radius:999px;
+  background:#e8f9f0;
+  color:#0f9d58;
+}
+
+/* نوار تکمیل پروفایل */
+.completion{
+  display:flex;
+  align-items:center;
+  gap:24px;
+  flex-wrap:wrap;
+  background:linear-gradient(120deg,#ffffff,#f8f7ff);
+}
+.completion-text{flex:1;min-width:200px}
+.completion-text h4{font-size:15px;font-weight:700;margin-bottom:4px}
+.completion-text p{font-size:12.5px;color:var(--muted)}
+.completion-bar-wrap{flex:1;min-width:200px}
+.progress-info{
+  display:flex;
+  justify-content:space-between;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-bottom:8px;
+  font-weight:600;
+}
+.progress-info strong{color:var(--primary)}
+.progress{
+  height:10px;
+  border-radius:999px;
+  background:#eef0f8;
+  overflow:hidden;
+}
+.progress-bar{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-2));
+  box-shadow:0 0 12px rgba(91,75,255,.5);
+  animation:grow 1.1s cubic-bezier(.22,1,.36,1);
+}
+@keyframes grow{from{width:0 !important}}
+
+/* فرم */
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+.field{display:flex;flex-direction:column}
+.field.full{grid-column:1 / -1}
+.field label{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--muted);
+  margin-bottom:7px;
+}
+.field input,
+.field select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:13px;
+  border:1.5px solid var(--border);
+  background:#fafbff;
+  font-family:inherit;
+  font-size:13.5px;
+  color:var(--text);
+  transition:.22s;
+}
+.field input::placeholder{color:#b6bacb}
+.field input:focus,
+.field select:focus{
+  outline:none;
+  border-color:var(--primary);
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(91,75,255,.1);
+}
+.field select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a90a6' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:left 14px center;
+  padding-left:40px;
+}
+
+.form-actions{
+  display:flex;
+  gap:10px;
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid var(--border);
+  flex-wrap:wrap;
+}
+
+/* دکمه‌ها */
+.btn{
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+  font-weight:600;
+  font-size:13.5px;
+  padding:12px 24px;
+  border-radius:13px;
+  transition:.25s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.btn svg{width:17px;height:17px}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  box-shadow:0 12px 24px -10px rgba(91,75,255,.9);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 28px -10px rgba(91,75,255,1)}
+.btn-ghost{background:#f3f4fd;color:var(--primary)}
+.btn-ghost:hover{background:#e9eaff}
+.btn-sm{padding:9px 17px;font-size:12.5px;border-radius:11px}
+
+/* فیلترها */
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.filter{
+  padding:9px 17px;
+  border-radius:999px;
+  border:1.5px solid var(--border);
+  background:#fff;
+  color:var(--muted);
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.22s;
+}
+.filter:hover{border-color:#d9dcf0;color:var(--text)}
+.filter.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 10px 20px -9px rgba(91,75,255,.95);
+}
+
+/* سفارش‌ها */
+.order-list{display:flex;flex-direction:column;gap:14px}
+.order-card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.8);
+  transition:.28s;
+}
+.order-card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-lg);
+}
+.oc-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:13px;
+  border-bottom:1px dashed var(--border);
+  flex-wrap:wrap;
+}
+.oc-id{font-size:13px;color:var(--muted)}
+.oc-id strong{color:var(--text);font-weight:700;direction:ltr;display:inline-block}
+.oc-body{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:15px 0;
+  flex-wrap:wrap;
+}
+.oc-product{display:flex;align-items:center;gap:13px;min-width:0}
+.oc-thumb{
+  width:56px;height:56px;
+  flex-shrink:0;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  font-size:26px;
+  background:linear-gradient(135deg,#f1f2ff,#f8f4ff);
+  border:1px solid #eef0fb;
+}
+.oc-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.oc-meta{font-size:12px;color:var(--muted)}
+.oc-price{
+  font-size:16px;
+  font-weight:800;
+  color:var(--primary);
+  white-space:nowrap;
+}
+.oc-price span{font-size:11.5px;font-weight:500;color:var(--muted)}
+.oc-foot{
+  display:flex;
+  gap:10px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+.status{
+  padding:6px 13px;
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.status.delivered{background:#e8f9f0;color:#0f9d58}
+.status.shipping{background:#e8f1ff;color:#2563eb}
+.status.pending{background:#fff5e6;color:#d97706}
+.status.canceled{background:#feeceb;color:#e53935}
+
+/* آدرس‌ها */
+.address-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:16px;
+}
+.address-card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--shadow);
+  border:1.5px solid transparent;
+  transition:.28s;
+  position:relative;
+  text-align:right;
+}
+.address-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.address-card.default{border-color:rgba(91,75,255,.4)}
+.ac-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.ac-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+}
+.ac-tag svg{width:16px;height:16px;color:var(--primary)}
+.ac-default{
+  font-size:10.5px;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#eef0ff;
+  color:var(--primary);
+}
+.ac-text{
+  font-size:13px;
+  color:#5c6178;
+  line-height:1.9;
+  margin-bottom:12px;
+}
+.ac-info{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  font-size:12px;
+  color:var(--muted);
+  padding-top:12px;
+  border-top:1px dashed var(--border);
+}
+.ac-info span{display:flex;align-items:center;gap:7px}
+.ac-info svg{width:14px;height:14px;color:#b0b5c8}
+.ac-actions{display:flex;gap:8px;margin-top:14px}
+.ac-actions button{
+  flex:1;
+  border:none;
+  padding:8px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.22s;
+  background:#f5f6fc;
+  color:var(--muted);
+}
+.ac-actions button:hover{background:#eef0ff;color:var(--primary)}
+.ac-actions button.del:hover{background:#fef2f2;color:#ef4444}
+
+.address-card.add{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:200px;
+  border:2px dashed #d9dcf0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-family:inherit;
+  font-size:13.5px;
+  font-weight:600;
+}
+.address-card.add:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+  background:rgba(91,75,255,.04);
+  transform:translateY(-3px);
+  box-shadow:none;
+}
+.address-card.add .plus{
+  width:48px;height:48px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#f3f4fd;
+  font-size:24px;
+  transition:.25s;
+}
+.address-card.add:hover .plus{background:#e9eaff}
+
+/* پشتیبانی */
+.support-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+.support-card{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:24px 18px;
+  box-shadow:var(--shadow);
+  text-align:center;
+  transition:.28s;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,.8);
+}
+.support-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.support-icon{
+  width:56px;height:56px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  margin:0 auto 13px;
+  background:linear-gradient(135deg,#eef0ff,#f6f0ff);
+  color:var(--primary);
+  transition:.28s;
+}
+.support-card:hover .support-icon{transform:scale(1.08) rotate(-4deg)}
+.support-icon svg{width:26px;height:26px}
+.support-card h4{font-size:14.5px;font-weight:700;margin-bottom:5px}
+.support-card p{font-size:12px;color:var(--muted)}
+
+.ticket-list{display:flex;flex-direction:column;gap:10px}
+.ticket{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:15px;
+  border-radius:15px;
+  background:#fafbff;
+  border:1px solid var(--border);
+  transition:.22s;
+  flex-wrap:wrap;
+}
+.ticket:hover{background:#f5f6ff;border-color:#e3e5f7}
+.ticket-icon{
+  width:40px;height:40px;
+  flex-shrink:0;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border:1px solid var(--border);
+  color:var(--primary);
+}
+.ticket-icon svg{width:18px;height:18px}
+.ticket-body{flex:1;min-width:150px}
+.ticket-body h5{font-size:13.5px;font-weight:600;margin-bottom:2px}
+.ticket-body span{font-size:11.5px;color:var(--muted)}
+.ticket .status{font-size:11px}
+
+/* ============ ریسپانسیو ============ */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(20,24,45,.45);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  visibility:hidden;
+  transition:.3s;
+  z-index:90;
+}
+.overlay.show{opacity:1;visibility:visible}
+
+@media (min-width:961px){
+  .overlay{display:none}
+}
+
+@media (max-width:1080px){
+  .sidebar{width:270px;flex:0 0 270px}
+  .search{max-width:280px}
+}
+
+@media (max-width:960px){
+  .menu-btn{display:inline-flex}
+  .sidebar-close{display:grid}
+
+  .sidebar{
+    position:fixed;
+    top:0;right:0;bottom:0;
+    width:300px;
+    max-height:100vh;
+    border-radius:0;
+    padding:22px 16px 30px;
+    z-index:100;
+    transform:translateX(100%);
+    transition:transform .38s cubic-bezier(.22,1,.36,1);
+    box-shadow:-20px 0 50px -20px rgba(20,24,45,.4);
+  }
+  .sidebar.open{transform:translateX(0)}
+
+  .layout{padding:18px 16px 60px}
+}
+
+@media (max-width:760px){
+  .search{display:none}
+  .panel-head h2{font-size:20px}
+  .brand-text{font-size:16px}
+}
+
+@media (max-width:640px){
+  .topbar{padding:10px 14px;gap:10px}
+  .layout{padding:16px 12px 50px}
+  .form-grid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .card{padding:18px;border-radius:18px}
+  .oc-body{align-items:flex-start}
+  .oc-price{font-size:15px}
+  .oc-foot{justify-content:stretch}
+  .oc-foot .btn{flex:1}
+  .panel-head h2{font-size:19px}
+  .completion{gap:16px}
+  .address-grid{grid-template-columns:1fr}
+}
+
+@media (max-width:400px){
+  .brand-text{display:none}
+  .pc-stats strong{font-size:14px}
+}
+
+/* ============ توست ============ */
+.toast{
+  position:fixed;
+  bottom:28px;
+  left:50%;
+  transform:translate(-50%,120%);
+  background:#1e2235;
+  color:#fff;
+  padding:13px 26px;
+  border-radius:14px;
+  font-size:13.5px;
+  font-weight:500;
+  box-shadow:0 18px 40px -12px rgba(20,24,45,.6);
+  z-index:200;
+  opacity:0;
+  transition:.4s cubic-bezier(.22,1,.36,1);
+  white-space:nowrap;
+  max-width:90vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.form-input,
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 13px;
+  border: 1.5px solid var(--border);
+  background: #fafbff;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  transition: .22s;
+}
+.form-input:focus,
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(91,75,255,.1);
+}
+
+.field-error {
+  display: block;
+  color: #ef4444;
+  font-size: 11.5px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+.field-hint {
+  display: block;
+  color: var(--muted);
+  font-size: 11.5px;
+  margin-top: 6px;
+}
+
+/* آواتار با تصویر */
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* پیام‌های Django */
+.messages-wrap {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 90vw;
+}
+.alert {
+  padding: 12px 22px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 12px 28px -10px rgba(20,24,45,.4);
+  animation: fadeUp .35s;
+}
+.alert-success { background: #e8f9f0; color: #0f9d58; border: 1px solid #b8ebd0; }
+.alert-error   { background: #feeceb; color: #e53935; border: 1px solid #f9c2bd; }
+.alert-warning { background: #fff5e6; color: #d97706; border: 1px solid #f9dba8; }
+.alert-info    { background: #e8f1ff; color: #2563eb; border: 1px solid #c0d4f7; }
+
+/* حالت خالی */
+.empty-state {
+  text-align: center;
+  padding: 44px 20px;
+  color: var(--muted);
+}
+.empty-state p { margin-bottom: 14px; font-size: 14px; }
+.empty-state.small { padding: 24px 14px; font-size: 12.5px; }
+
+/* دکمه‌های ویرایش/حذف آدرس به صورت لینک */
+.ac-actions .btn-edit,
+.ac-actions .btn-del {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  background: #f5f6fc;
+  color: var(--muted);
+  transition: .22s;
+}
+.ac-actions .btn-edit:hover { background: #eef0ff; color: var(--primary); }
+.ac-actions .btn-del:hover  { background: #fef2f2; color: #ef4444; }
+</style>
 </head>
 <body>
 
-<header id="site-header" class="site-header"></header>
+<!-- ============ نوار بالا ============ -->
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="منو">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M4 7h16M4 12h16M4 17h16"/>
+    </svg>
+  </button>
 
-<div class="dash-layout">
-  <aside class="dash-side">
-    <div class="dash-user">
-      <div class="dash-avatar" id="dash-avatar">کا</div>
-      <div class="phone" id="dash-phone">—</div>
+  <a href="/" class="brand">
+    <span class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10.5 12 4l9 6.5"/>
+        <path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+        <rect x="9.5" y="13.5" width="5" height="6.5" rx="1"/>
+      </svg>
+    </span>
+    <span class="brand-text">لوازم<span>‌خونه</span></span>
+  </a>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>
+    </svg>
+    <input type="text" placeholder="جستجو در محصولات…">
+  </div>
+
+  <div class="top-actions">
+    <button class="icon-btn badge-dot" aria-label="اعلان‌ها">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 3h16l-2-3z"/>
+        <path d="M10 22a2 2 0 0 0 4 0"/>
+      </svg>
+    </button>
+    <button class="icon-btn" aria-label="سبد خرید">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9.5" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>
+        <path d="M2.5 3.5h2.6l2.5 11.6a1.8 1.8 0 0 0 1.8 1.4h7.5a1.8 1.8 0 0 0 1.8-1.4L20.5 7.5H6"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ============ پیام‌های Django ============ -->
+{% if messages %}
+<div class="messages-wrap">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ============ چیدمان اصلی ============ -->
+<div class="layout">
+
+  <!-- ===== سایدبار ===== -->
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarClose" aria-label="بستن">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6L6 18"/>
+      </svg>
+    </button>
+
+    <!-- کارت پروفایل -->
+    <div class="profile-card">
+      <div class="avatar">
+        {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name }}">
+        {% else %}
+          {{ user.first_letter }}
+        {% endif %}
+      </div>
+      <h3 class="pc-name">{{ user.get_full_name }}</h3>
+      <p class="pc-phone">{{ user.mobile }}</p>
+      <span class="pc-badge">✨ مشتری {{ user.get_customer_level_display }}</span>
+      <div class="pc-stats">
+        <div><strong>{{ user.orders_count }}</strong><span>سفارش</span></div>
+        <div><strong>{{ user.addresses_count }}</strong><span>آدرس</span></div>
+        <div><strong>{{ user.points }}</strong><span>امتیاز</span></div>
+      </div>
     </div>
-    <nav class="dash-nav">
-      <a href="#overview" class="active">🏠 میز کار</a>
-      <a href="#orders">📦 سفارش‌های من</a>
-      <a href="cart.html">🛒 سبد خرید</a>
-      <button type="button" id="logout-btn">🚪 خروج از حساب</button>
+
+    <!-- منو -->
+    <nav class="menu">
+      <div class="menu-label">حساب کاربری</div>
+
+      <a href="?tab=profile" class="menu-item {% if active_tab == 'profile' %}active{% endif %}">
+        <span class="mi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="3.8"/>
+            <path d="M4.5 20c0-3.9 3.4-5.9 7.5-5.9s7.5 2 7.5 5.9"/>
+          </svg>
+        </span>
+        <span class="mi-text">اطلاعات کاربری</span>
+      </a>
+
+      <a href="?tab=orders" class="menu-item {% if active_tab == 'orders' %}active{% endif %}">
+        <span class="mi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5.5 8h13l1 12h-15l1-12z"/>
+            <path d="M9 8V6.2A3 3 0 0 1 12 3.2a3 3 0 0 1 3 3V8"/>
+          </svg>
+        </span>
+        <span class="mi-text">سفارش‌های من</span>
+        {% if user.orders_count %}
+          <span class="mi-count">{{ user.orders_count }}</span>
+        {% endif %}
+      </a>
+
+      <a href="?tab=addresses" class="menu-item {% if active_tab == 'addresses' %}active{% endif %}">
+        <span class="mi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21.5s7.2-5.9 7.2-11.3A7.2 7.2 0 0 0 4.8 10.2C4.8 15.6 12 21.5 12 21.5z"/>
+            <circle cx="12" cy="10" r="2.6"/>
+          </svg>
+        </span>
+        <span class="mi-text">آدرس‌های من</span>
+      </a>
+
+      <a href="?tab=support" class="menu-item {% if active_tab == 'support' %}active{% endif %}">
+        <span class="mi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 14.5v-2.3a7.5 7.5 0 0 1 15 0v2.3"/>
+            <rect x="2.4" y="13.4" width="4.2" height="6.2" rx="1.8"/>
+            <rect x="17.4" y="13.4" width="4.2" height="6.2" rx="1.8"/>
+            <path d="M19.5 19.6v.9a2.2 2.2 0 0 1-2.2 2.2H13.5"/>
+          </svg>
+        </span>
+        <span class="mi-text">پشتیبانی</span>
+      </a>
+
+      <div class="menu-divider"></div>
+
+      <a href="{% url 'logout' %}" class="menu-item danger" id="logoutBtn">
+        <span class="mi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 3.5h3.7a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-3.7"/>
+            <path d="M10 16.5 5.5 12 10 7.5"/>
+            <path d="M5.5 12h9"/>
+          </svg>
+        </span>
+        <span class="mi-text">خروج از حساب</span>
+      </a>
     </nav>
   </aside>
 
-  <main class="dash-main">
-    <div class="welcome-banner" id="overview">
-      <div>
-        <h2 id="greeting-line">سلام 👋</h2>
-        <p>خوشحالیم دوباره تو خانه‌ی لوازم آشپزخانه‌ای‌ت رو می‌بینیم.</p>
-      </div>
-      <a href="index.html" class="btn copper">مشاهده‌ی محصولات جدید</a>
-    </div>
+  <div class="overlay" id="overlay"></div>
 
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">تعداد کل سفارش‌ها</div>
-        <div class="stat-value" id="stat-orders">۰</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">مجموع خرید</div>
-        <div class="stat-value" id="stat-total">۰ تومان</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">سفارش در حال پردازش</div>
-        <div class="stat-value" id="stat-processing">۰</div>
-      </div>
-    </div>
+  <!-- ===== محتوای اصلی ===== -->
+  <main class="content">
 
-    <div id="orders">
-      <div class="section-title">
-        <h2 style="margin:0;font-size:1.05rem">سفارش‌های اخیر</h2>
+    <!-- ---------- پنل ۱: اطلاعات کاربری ---------- -->
+    <section class="panel {% if active_tab == 'profile' %}active{% endif %}" id="panel-profile">
+      <div class="panel-head">
+        <h2>اطلاعات کاربری</h2>
+        <p>مشخصات حساب خود را مشاهده و ویرایش کنید</p>
       </div>
-      <div id="orders-list"></div>
-    </div>
+
+      <div class="card completion">
+        <div class="completion-text">
+          <h4>تکمیل پروفایل شما</h4>
+          <p>با تکمیل اطلاعات، خریدهای بعدی‌تان سریع‌تر انجام می‌شود.</p>
+        </div>
+        <div class="completion-bar-wrap">
+          <div class="progress-info">
+            <span>وضعیت تکمیل</span>
+            <strong>{{ user.profile_completion }}٪</strong>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" style="width: {{ user.profile_completion }}%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <h3>مشخصات فردی</h3>
+          <span class="chip-soft">
+            {% if user.is_verified %}حساب تأیید شده ✓{% else %}در انتظار تأیید{% endif %}
+          </span>
+        </div>
+
+        <form class="form-grid" method="post" enctype="multipart/form-data"
+              action="{% url 'dashboard' %}">
+          {% csrf_token %}
+
+          <div class="field">
+            <label for="{{ form.first_name.id_for_label }}">نام</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <small class="field-error">{{ form.first_name.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.last_name.id_for_label }}">نام خانوادگی</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <small class="field-error">{{ form.last_name.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.mobile.id_for_label }}">شماره موبایل</label>
+            {{ form.mobile }}
+            {% if form.mobile.errors %}
+              <small class="field-error">{{ form.mobile.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.email.id_for_label }}">ایمیل</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <small class="field-error">{{ form.email.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.national_code.id_for_label }}">کد ملی</label>
+            {{ form.national_code }}
+            {% if form.national_code.errors %}
+              <small class="field-error">{{ form.national_code.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.birth_date.id_for_label }}">تاریخ تولد</label>
+            {{ form.birth_date }}
+            {% if form.birth_date.errors %}
+              <small class="field-error">{{ form.birth_date.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.gender.id_for_label }}">جنسیت</label>
+            {{ form.gender }}
+            {% if form.gender.errors %}
+              <small class="field-error">{{ form.gender.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.city.id_for_label }}">شهر</label>
+            {{ form.city }}
+            {% if form.city.errors %}
+              <small class="field-error">{{ form.city.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="field full">
+            <label for="{{ form.avatar.id_for_label }}">تصویر پروفایل</label>
+            {{ form.avatar }}
+            {% if user.avatar %}
+              <small class="field-hint">تصویر فعلی: {{ user.avatar.name }}</small>
+            {% endif %}
+            {% if form.avatar.errors %}
+              <small class="field-error">{{ form.avatar.errors.0 }}</small>
+            {% endif %}
+          </div>
+
+          <div class="form-actions full">
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12.5 10 17.5 19 7"/>
+              </svg>
+              ذخیره تغییرات
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-ghost">انصراف</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- پنل ۲: سفارش‌ها ---------- -->
+    <section class="panel {% if active_tab == 'orders' %}active{% endif %}" id="panel-orders">
+      <div class="panel-head">
+        <h2>سفارش‌های من</h2>
+        <p>وضعیت و تاریخچه سفارش‌های خود را پیگیری کنید</p>
+      </div>
+
+      <div class="filters">
+        <button class="filter active" data-filter="all">همه</button>
+        <button class="filter" data-filter="pending">در حال پردازش</button>
+        <button class="filter" data-filter="shipping">ارسال شده</button>
+        <button class="filter" data-filter="delivered">تحویل شده</button>
+        <button class="filter" data-filter="canceled">لغو شده</button>
+      </div>
+
+      <div class="order-list">
+        {% for order in orders %}
+          <article class="order-card" data-status="{{ order.status }}">
+            <div class="oc-head">
+              <div class="oc-id">سفارش <strong>#{{ order.code }}</strong></div>
+              <span class="status {{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="oc-body">
+              <div class="oc-product">
+                <div class="oc-thumb">{{ order.first_item_icon|default:"📦" }}</div>
+                <div>
+                  <p class="oc-title">{{ order.first_item_title|default:order.summary }}</p>
+                  <span class="oc-meta">{{ order.created_at|date:"j F Y" }} · {{ order.items_count }} کالا</span>
+                </div>
+              </div>
+              <div class="oc-price">
+                {{ order.total_price|floatformat:"0" }} <span>تومان</span>
+              </div>
+            </div>
+            <div class="oc-foot">
+              <a href="#" class="btn btn-ghost btn-sm">جزئیات سفارش</a>
+              {% if order.status == 'shipping' %}
+                <a href="#" class="btn btn-primary btn-sm">پیگیری مرسوله</a>
+              {% elif order.status == 'delivered' %}
+                <a href="#" class="btn btn-primary btn-sm">خرید مجدد</a>
+              {% elif order.status == 'pending' %}
+                <a href="#" class="btn btn-primary btn-sm">لغو سفارش</a>
+              {% else %}
+                <a href="#" class="btn btn-primary btn-sm">خرید مجدد</a>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="card empty-state">
+            <p>هنوز سفارشی ثبت نکرده‌اید 🛒</p>
+            <a href="/" class="btn btn-primary btn-sm">شروع خرید</a>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ---------- پنل ۳: آدرس‌ها ---------- -->
+    <section class="panel {% if active_tab == 'addresses' %}active{% endif %}" id="panel-addresses">
+      <div class="panel-head">
+        <h2>آدرس‌های من</h2>
+        <p>آدرس‌های تحویل سفارش را مدیریت کنید</p>
+      </div>
+
+      <div class="address-grid">
+        {% for address in addresses %}
+          <div class="address-card {% if address.is_default %}default{% endif %}">
+            <div class="ac-top">
+              <span class="ac-tag">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 10.5 12 4l9 6.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/>
+                </svg>
+                {{ address.title }}
+              </span>
+              {% if address.is_default %}
+                <span class="ac-default">پیش‌فرض</span>
+              {% endif %}
+            </div>
+            <p class="ac-text">{{ address.full_address }}</p>
+            <div class="ac-info">
+              <span>کد پستی: {{ address.postal_code }}</span>
+              <span>تحویل‌گیرنده: {{ address.recipient_name }}</span>
+              <span>{{ address.recipient_mobile }}</span>
+            </div>
+            <div class="ac-actions">
+              <a href="#" class="btn-edit">ویرایش</a>
+              <a href="#" class="btn-del del">حذف</a>
+            </div>
+          </div>
+        {% endfor %}
+
+        <a href="#" class="address-card add">
+          <span class="plus">+</span>
+          افزودن آدرس جدید
+        </a>
+      </div>
+    </section>
+
+    <!-- ---------- پنل ۴: پشتیبانی ---------- -->
+    <section class="panel {% if active_tab == 'support' %}active{% endif %}" id="panel-support">
+      <div class="panel-head">
+        <h2>پشتیبانی</h2>
+        <p>هر زمان که نیاز داشتید، در کنار شما هستیم</p>
+      </div>
+
+      <div class="support-grid">
+        <a href="tel:02191000000" class="support-card">
+          <div class="support-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>
+            </svg>
+          </div>
+          <h4>تماس تلفنی</h4>
+          <p>۰۲۱–۹۱۰۰۰۰۰۰</p>
+        </a>
+
+        <a href="#" class="support-card">
+          <div class="support-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-8 8H8l-4 3v-6.5A8 8 0 0 1 13 4a8 8 0 0 1 8 8z"/>
+              <path d="M9 11h.01M13 11h.01M17 11h.01"/>
+            </svg>
+          </div>
+          <h4>چت آنلاین</h4>
+          <p>پاسخ در کمتر از ۲ دقیقه</p>
+        </a>
+
+        <a href="{% url 'ticket' %}" class="support-card">
+          <div class="support-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6z"/>
+              <path d="M8 9h8M8 13h5"/>
+            </svg>
+          </div>
+          <h4>ثبت تیکت</h4>
+          <p>پیگیری در ۲۴ ساعت</p>
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <h3>آخرین تیکت‌های شما</h3>
+          <a href="{% url 'ticket' %}" class="btn btn-ghost btn-sm">تیکت جدید +</a>
+        </div>
+
+        <div class="ticket-list">
+          {% for ticket in tickets %}
+            <a href="#" class="ticket">
+              <div class="ticket-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>
+                </svg>
+              </div>
+              <div class="ticket-body">
+                <h5>{{ ticket.subject }}</h5>
+                <span>تیکت #{{ ticket.code }} · {{ ticket.created_at|timesince }} پیش</span>
+              </div>
+              <span class="status {{ ticket.status }}">{{ ticket.get_status_display }}</span>
+            </a>
+          {% empty %}
+            <div class="empty-state small">
+              <p>تیکتی ثبت نشده است.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
-<footer id="site-footer" class="site-footer"></footer>
+<div class="toast" id="toast"></div>
 
-<script src="{% static 'js/auth.js' %}"></script>
-<script src="{% static 'js/store.js' %}"></script>
-<script src="{% static 'js/layout.js' %}"></script>
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+  /* ========== منوی موبایل ========== */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const menuBtn = document.getElementById('menuBtn');
+const sidebarClose = document.getElementById('sidebarClose');
+
+function openSidebar(){
+  sidebar?.classList.add('open');
+  overlay?.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar(){
+  sidebar?.classList.remove('open');
+  overlay?.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+menuBtn?.addEventListener('click', openSidebar);
+sidebarClose?.addEventListener('click', closeSidebar);
+overlay?.addEventListener('click', closeSidebar);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSidebar();
+});
+
+/* ========== فیلتر سفارش‌ها ========== */
+document.querySelectorAll('.filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filter = btn.dataset.filter;
+
+    document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.order-card').forEach(card => {
+      if (filter === 'all' || card.dataset.status === filter) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+/* ========== توست ========== */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg){
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+/* ========== بستن خودکار پیام‌های Django ========== */
+document.querySelectorAll('.alert').forEach(el => {
+  setTimeout(() => {
+    el.style.transition = 'opacity .5s, transform .5s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    setTimeout(() => el.remove(), 500);
+  }, 4000);
+});
+
+/* ========== تأیید خروج ========== */
+document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+  if (!confirm('از حساب خود خارج می‌شوید؟')) {
+    e.preventDefault();
+  }
+});
+
+/* ========== عملیات آدرس‌ها ========== */
+document.querySelectorAll('.ac-actions .btn-del').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (confirm('این آدرس حذف شود؟')) {
+      toast('آدرس حذف شد');
+      // TODO: درخواست واقعی به سرور
+    }
+  });
+});
+</script>
 </body>
 </html>

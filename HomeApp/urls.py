@@ -20,16 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 
-def txt_view(request):
-    # محتوای دلخواه (می‌توانید از یک فایل واقعی بخوانید)
-    content = ""
-    return HttpResponse(content, content_type='text/plain')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("users.urls")),
     path('shop/', include("shop.urls")),
-    path('69611338.txt', txt_view)
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
