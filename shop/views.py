@@ -48,7 +48,7 @@ def product_detail(request, slug):
         slug=slug,
         is_active=True,
     )
-    form = AddToCartForm()
+    form = AddToCartForm(product=product)
     return render(request, "product_detail.html", {"product": product, "form": form})
 
 
@@ -71,7 +71,7 @@ def cart_detail(request):
 def cart_add(request, product_id):
     """افزودن یک محصول به سبد خرید (یا افزایش تعداد اگه از قبل تو سبد بود)"""
     product = get_object_or_404(Product, pk=product_id, is_active=True)
-    form = AddToCartForm(request.POST)
+    form = AddToCartForm(request.POST, product=product)
 
     if not form.is_valid():
         messages.error(request, "تعداد وارد شده معتبر نیست.")

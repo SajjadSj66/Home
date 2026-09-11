@@ -192,30 +192,7 @@ class Product(models.Model):
             else self.price
         )
 
-class ProductImage(models.Model):
-    """تصاویر اضافه برای گالری محصول (علاوه بر تصویر اصلی)"""
 
-    product = models.ForeignKey(Product, verbose_name="محصول", related_name="images", on_delete=models.CASCADE)
-    image = models.ImageField("تصویر", upload_to="products/gallery/")
-    alt_text = models.CharField("متن جایگزین", max_length=150, blank=True)
-    display_order = models.PositiveSmallIntegerField("ترتیب", default=0)
-
-    class Meta:
-        verbose_name = "تصویر محصول"
-        verbose_name_plural = "تصاویر محصول"
-        ordering = ["display_order"]
-
-    def __str__(self):
-        return f"تصویر {self.product.title}"
-
-
-class ProductSpec(models.Model):
-    """مشخصات فنی محصول به‌صورت کلید/مقدار (دقیقا همون چیزی که تو برگه‌ی مشخصات فرانت نشون داده میشه)"""
-
-    product = models.ForeignKey(Product, verbose_name="محصول", related_name="specs", on_delete=models.CASCADE)
-    key = models.CharField("عنوان مشخصه", max_length=80, help_text="مثلاً: توان مصرفی، ظرفیت، جنس بدنه")
-    value = models.CharField("مقدار", max_length=200, help_text="مثلاً: ۱۸۰۰ وات، ۵ لیتر، استیل ضدزنگ")
-    display_order = models.PositiveSmallIntegerField("ترتیب", default=0)
 class ProductImage(models.Model):
 
     product = models.ForeignKey(

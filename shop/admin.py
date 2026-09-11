@@ -1,16 +1,5 @@
 from django.contrib import admin
-
-from .models import (
-    Brand,
-    Cart,
-    CartItem,
-    Category,
-    Order,
-    OrderItem,
-    Product,
-    ProductImage,
-    ProductSpec,
-)
+from .models import *
 
 
 @admin.register(Category)
@@ -109,3 +98,37 @@ class CartAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
     inlines = [CartItemInline]
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "order",
+        "amount",
+        "status",
+        "gateway",
+        "authority",
+        "transaction_id",
+        "created_at",
+        "paid_at",
+    )
+
+    list_filter = (
+        "status",
+        "gateway",
+        "created_at",
+    )
+
+    search_fields = (
+        "order__id",
+        "authority",
+        "transaction_id",
+        "ref_id",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "paid_at",
+    )
