@@ -5,6 +5,9 @@
 {% block content %}
 <div class="container">
 
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
   <section style="padding:42px 0 28px;">
     <div style="display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:38px;overflow:hidden;">
       <div>
@@ -20,17 +23,26 @@
     </div>
   </section>
 
-  <section style="padding:18px 0 34px;">
-    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
-      <div><div class="eyebrow">دسته‌بندی‌ها</div><h2 style="margin-top:5px;">دسته‌بندی محصولات</h2></div>
-      <a class="btn ghost sm" href="{% url 'product_list' %}">همه محصولات</a>
+  <!-- ============================================================
+       CATEGORIES
+       ============================================================ -->
+  <section class="categories" id="categories" style="padding:18px 0 34px;">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
+      <div>
+        <span class="eyebrow gold">دسته‌بندی‌ها</span>
+        <h2 style="margin-top:5px;">هر چی برای آشپزخونه لازم داری</h2>
+      </div>
+      <p style="margin:0;color:var(--muted);">از ابزار برش تا سرویس پذیرایی، دسته‌بندی مورد نظرت رو انتخاب کن.</p>
     </div>
+
     {% if categories %}
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;">
+      <div class="cat-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
         {% for category in categories %}
-          <a href="{% url 'product_list' %}?category={{ category.slug|urlencode }}" style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 12px;text-align:center;transition:.15s;">
-            <div style="font-size:1.7rem;margin-bottom:7px;">{% if category.icon %}{{ category.icon }}{% else %}🍽️{% endif %}</div>
-            <strong style="font-size:.9rem;">{{ category.name }}</strong>
+          <a href="{% url 'product_list' %}?category={{ category.slug|urlencode }}" class="cat-card" style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 12px;text-align:center;transition:.15s;">
+            <div class="cat-ic" style="font-size:1.7rem;margin-bottom:7px;">
+              {% if category.icon %}{{ category.icon }}{% else %}🍽️{% endif %}
+            </div>
+            <span>{{ category.name }}</span>
           </a>
         {% endfor %}
       </div>
@@ -39,67 +51,161 @@
     {% endif %}
   </section>
 
+  <!-- ============================================================
+       DISCOUNTS
+       ============================================================ -->
   {% if discounted_products %}
-  <section id="discounts" style="padding:34px 0;">
-    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
-      <div><div class="eyebrow">پیشنهاد ویژه</div><h2 style="margin-top:5px;">تخفیف‌های ویژه</h2></div>
-      <a class="btn ghost sm" href="{% url 'product_list' %}">مشاهده همه</a>
+  <section class="products" id="discounts" style="padding:34px 0;">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
+      <div>
+        <span class="eyebrow">پیشنهاد ویژه</span>
+        <h2 style="margin-top:5px;">تخفیف‌های ویژه</h2>
+      </div>
+      <p style="margin:0;color:var(--muted);">فرصت‌های جذاب امروز را قبل از تمام شدن موجودی از دست نده.</p>
     </div>
+
     <div class="product-grid">
       {% for product in discounted_products %}
-        <a class="card" href="{% url 'product_detail' slug=product.slug %}">
-          <div class="thumb" style="position:relative;">
-            {% if product.main_image %}<img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">{% else %}<span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>{% endif %}
-            <span style="position:absolute;top:8px;right:8px;background:var(--danger);color:#fff;padding:4px 9px;border-radius:20px;font-size:.7rem;font-weight:700;">تخفیف</span>
+        <article class="product-card card">
+          <a href="{% url 'product_detail' slug=product.slug %}" aria-label="مشاهده {{ product.title }}">
+            <div class="product-media thumb" style="position:relative;">
+              {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">
+              {% else %}
+                <span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>
+              {% endif %}
+              <span class="badge sale" style="position:absolute;top:8px;right:8px;background:var(--danger);color:#fff;padding:4px 9px;border-radius:20px;font-size:.7rem;font-weight:700;">تخفیف</span>
+            </div>
+          </a>
+          <div class="product-info">
+            <span class="cat-label cat">{{ product.category.name }}</span>
+            <h3><a href="{% url 'product_detail' slug=product.slug %}">{{ product.title }}</a></h3>
+            <div class="price-row bottom">
+              <span class="price"><span class="price-old old-price">{{ product.price|floatformat:0 }}</span> {{ product.final_price|floatformat:0 }} <small>تومان</small></span>
+              <a class="icon-btn" href="{% url 'product_detail' slug=product.slug %}" aria-label="مشاهده محصول">+</a>
+            </div>
+            {% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}
           </div>
-          <span class="cat">{{ product.category.name }}</span>
-          <h3>{{ product.title }}</h3>
-          <div class="bottom"><div class="price-block"><span class="price">{{ product.final_price|floatformat:0 }} تومان</span><span class="old-price">{{ product.price|floatformat:0 }}</span></div>{% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}</div>
-        </a>
+        </article>
       {% endfor %}
     </div>
   </section>
   {% endif %}
 
+  <!-- ============================================================
+       POPULAR PRODUCTS
+       ============================================================ -->
   {% if popular_products %}
-  <section style="padding:34px 0;">
-    <div style="margin-bottom:18px;"><div class="eyebrow">محبوب‌ترین‌ها</div><h2 style="margin-top:5px;">انتخاب مشتریان</h2></div>
+  <section class="products" id="popular-products" style="padding:34px 0;">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
+      <div>
+        <span class="eyebrow">پرفروش‌ترین‌ها</span>
+        <h2 style="margin-top:5px;">محصولات پیشنهادی آیتک هوم</h2>
+      </div>
+      <p style="margin:0;color:var(--muted);">انتخاب‌شده از میان محصولات محبوب و پرامتیاز فروشگاه.</p>
+    </div>
+
     <div class="product-grid">
       {% for product in popular_products %}
-        <a class="card" href="{% url 'product_detail' slug=product.slug %}">
-          <div class="thumb">{% if product.main_image %}<img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">{% else %}<span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>{% endif %}</div>
-          <span class="cat">{{ product.category.name }}</span><h3>{{ product.title }}</h3>
-          <div class="energy-rating"><div class="track"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><div class="marker" style="right:{% widthratio product.rating 5 100 %}%"></div></div><span class="label">محبوبیت {{ product.rating|floatformat:1 }} / ۵</span></div>
-          <div class="bottom"><span class="price">{{ product.final_price|floatformat:0 }} تومان</span>{% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}</div>
-        </a>
+        <article class="product-card card">
+          <a href="{% url 'product_detail' slug=product.slug %}">
+            <div class="product-media thumb" style="position:relative;">
+              {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">
+              {% else %}
+                <span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>
+              {% endif %}
+              {% if forloop.first %}<span class="badge new" style="position:absolute;top:8px;right:8px;background:var(--primary);color:#fff;padding:4px 9px;border-radius:20px;font-size:.7rem;font-weight:700;">محبوب</span>{% endif %}
+            </div>
+          </a>
+          <div class="product-info">
+            <span class="cat-label cat">{{ product.category.name }}</span>
+            <h3><a href="{% url 'product_detail' slug=product.slug %}">{{ product.title }}</a></h3>
+            <div class="energy-rating" style="margin:4px 0 6px;">
+              <div class="track">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                <div class="marker" style="right:{% widthratio product.rating 5 100 %}%"></div>
+              </div>
+              <span class="label">محبوبیت {{ product.rating|floatformat:1 }} / ۵</span>
+            </div>
+            <div class="price-row bottom">
+              <span class="price">{{ product.final_price|floatformat:0 }} <small>تومان</small></span>
+              <a class="icon-btn" href="{% url 'product_detail' slug=product.slug %}" aria-label="مشاهده محصول">+</a>
+            </div>
+            {% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}
+          </div>
+        </article>
       {% endfor %}
     </div>
   </section>
   {% endif %}
 
-  <section style="padding:34px 0 60px;">
-    <div style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;"><div><div class="eyebrow">جدیدترین محصولات</div><h2 style="margin-top:5px;">تازه‌های آیتک هوم</h2></div><a class="btn ghost sm" href="{% url 'product_list' %}">فروشگاه</a></div>
+  <!-- ============================================================
+       LATEST PRODUCTS
+       ============================================================ -->
+  <section class="products" id="products" style="padding:34px 0 60px;">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px;">
+      <div>
+        <span class="eyebrow">جدیدترین‌ها</span>
+        <h2 style="margin-top:5px;">تازه‌های آیتک هوم</h2>
+      </div>
+      <p style="margin:0;color:var(--muted);">جدیدترین محصولاتی که از پنل مدیریت فروشگاه ثبت شده‌اند.</p>
+    </div>
+
     {% if latest_products %}
       <div class="product-grid">
         {% for product in latest_products %}
-          <a class="card" href="{% url 'product_detail' slug=product.slug %}">
-            <div class="thumb" style="position:relative;">{% if product.main_image %}<img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">{% else %}<span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>{% endif %}<span style="position:absolute;top:8px;right:8px;background:var(--primary);color:#fff;padding:4px 9px;border-radius:20px;font-size:.7rem;font-weight:700;">جدید</span></div>
-            <span class="cat">{{ product.category.name }}</span><h3>{{ product.title }}</h3>
-            <div class="bottom"><div class="price-block"><span class="price">{{ product.final_price|floatformat:0 }} تومان</span>{% if product.discount_price %}<span class="old-price">{{ product.price|floatformat:0 }}</span>{% endif %}</div>{% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}</div>
-          </a>
+          <article class="product-card card">
+            <a href="{% url 'product_detail' slug=product.slug %}">
+              <div class="product-media thumb" style="position:relative;">
+                {% if product.main_image %}
+                  <img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy">
+                {% else %}
+                  <span style="color:var(--muted);font-size:.8rem">بدون تصویر</span>
+                {% endif %}
+                <span class="badge new" style="position:absolute;top:8px;right:8px;background:var(--primary);color:#fff;padding:4px 9px;border-radius:20px;font-size:.7rem;font-weight:700;">جدید</span>
+              </div>
+            </a>
+            <div class="product-info">
+              <span class="cat-label cat">{{ product.category.name }}</span>
+              <h3><a href="{% url 'product_detail' slug=product.slug %}">{{ product.title }}</a></h3>
+              <div class="price-row bottom">
+                <span class="price">
+                  {% if product.discount_price %}<span class="price-old old-price">{{ product.price|floatformat:0 }}</span>{% endif %}
+                  {{ product.final_price|floatformat:0 }} <small>تومان</small>
+                </span>
+                <a class="icon-btn" href="{% url 'product_detail' slug=product.slug %}" aria-label="مشاهده محصول">+</a>
+              </div>
+              {% if not product.in_stock %}<span class="stock out">ناموجود</span>{% endif %}
+            </div>
+          </article>
         {% endfor %}
       </div>
     {% else %}
       <div class="empty-state">هنوز محصولی برای نمایش ثبت نشده است. محصولات جدید از پنل مدیریت در این بخش نمایش داده می‌شوند.</div>
     {% endif %}
+
+    <div style="display:flex;justify-content:center;">
+      <a href="{% url 'product_list' %}" class="btn primary">مشاهده همه محصولات</a>
+    </div>
   </section>
 
 </div>
 
 <style>
-@media(max-width:700px){
-  .container>section:first-child>div{grid-template-columns:1fr!important;padding:24px!important;}
-  .container>section:first-child>div>div:last-child{min-height:170px!important;font-size:3.5rem!important;}
-}
+  .cat-card:hover{border-color:var(--primary)!important;box-shadow:0 4px 16px rgba(14,124,123,.08);}
+  .product-card .product-media{margin:-14px -14px 0;border-radius:var(--radius) var(--radius) 0 0;}
+  .product-card .product-media img{width:100%;height:100%;object-fit:cover;}
+  .product-card .product-info{padding-top:2px;}
+  .product-card .price{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+  .product-card .price small{font-family:var(--font-ui);font-size:.78rem;color:var(--muted);}
+  .product-card .icon-btn{color:var(--primary-dark);font-weight:800;font-size:1.2rem;}
+  .price-old{font-family:var(--font-mono);font-size:.75rem;color:var(--muted);text-decoration:line-through;}
+  @media(max-width:700px){
+    .container>section:first-child>div{grid-template-columns:1fr!important;padding:24px!important;}
+    .container>section:first-child>div>div:last-child{min-height:170px!important;font-size:3.5rem!important;}
+    .section-head{align-items:flex-start!important;flex-direction:column!important;}
+    .section-head p{font-size:.9rem;}
+  }
 </style>
 {% endblock %}
