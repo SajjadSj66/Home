@@ -1,0 +1,55 @@
+{% load static %}
+<article class="product-card">
+  <div class="product-card-media">
+    <a class="product-image-link" href="{% url 'product_detail' slug=product.slug %}" aria-label="مشاهده {{ product.title }}">
+      {% if product.main_image %}
+        <img src="{{ product.main_image.url }}" alt="{{ product.title }}" loading="lazy" decoding="async" width="640" height="520">
+      {% else %}
+        <div class="product-image-placeholder">
+          <span>تصویر محصول</span>
+          <small>برای نمایش عکس، تصویر کالا را در پنل مدیریت بارگذاری کنید.</small>
+        </div>
+      {% endif %}
+    </a>
+    {% if show_discount and product.discount_percent %}
+      <span class="product-badge sale-badge">{{ product.discount_percent|floatformat:0 }}٪ تخفیف</span>
+    {% elif product.discount_price %}
+      <span class="product-badge sale-badge">تخفیف ویژه</span>
+    {% else %}
+      <span class="product-badge neutral-badge">انتخاب بای‌قسطی</span>
+    {% endif %}
+    <button class="product-wishlist" type="button" data-wishlist-btn data-product-id="{{ product.id }}" data-product-title="{{ product.title }}" aria-label="افزودن {{ product.title }} به علاقه‌مندی‌ها" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.8 4.8 0 0 1 12 6.1a4.8 4.8 0 0 1 8.8 2.7Z"></path></svg>
+    </button>
+  </div>
+  <div class="product-card-body">
+    <div class="product-meta">
+      <span>{{ product.category.name }}</span>
+      {% if product.brand %}<span>{{ product.brand.name }}</span>{% endif %}
+    </div>
+    <h3><a href="{% url 'product_detail' slug=product.slug %}">{{ product.title }}</a></h3>
+    <div class="product-price-area">
+      <div class="product-price">
+        {% if product.discount_price %}
+          <del>{{ product.price|floatformat:0 }} <small>تومان</small></del>
+          <strong>{{ product.final_price|floatformat:0 }} <small>تومان</small></strong>
+        {% else %}
+          <strong>{{ product.final_price|floatformat:0 }} <small>تومان</small></strong>
+        {% endif %}
+      </div>
+      <span class="installment-hint">قابل بررسی برای خرید اقساطی</span>
+    </div>
+    <div class="product-card-footer">
+      {% if product.in_stock %}
+        <span class="stock-status available"><i></i> موجود</span>
+        <form method="post" action="{% url 'cart_add' product_id=product.id %}">
+          {% csrf_token %}
+          <button class="add-to-cart" type="submit"><span>افزودن به سبد</span><b aria-hidden="true">+</b></button>
+        </form>
+      {% else %}
+        <span class="stock-status unavailable"><i></i> ناموجود</span>
+        <button class="add-to-cart disabled" type="button" disabled>فعلاً ناموجود</button>
+      {% endif %}
+    </div>
+  </div>
+</article>
