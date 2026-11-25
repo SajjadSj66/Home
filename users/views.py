@@ -5,7 +5,7 @@ from django.contrib import messages
 from .forms import *
 from .models import *
 from .utils import *
-from shop.models import Category, Product
+from shop.models import Category, Product, Brand, CartItem
 import random
 import logging
 from django.http import JsonResponse
@@ -15,15 +15,37 @@ from django.urls import reverse
 
 def index(request):
     categories = Category.objects.all()[:8]
-    latest_products = Product.objects.filter(is_active=True).select_related("category", "brand").order_by("-created_at")[:8]
-    discounted_products = Product.objects.filter(is_active=True, discount_price__isnull=False).select_related("category", "brand").order_by("-created_at")[:8]
-    popular_products = Product.objects.filter(is_active=True, rating__gt=0).select_related("category", "brand").order_by("-rating", "-created_at")[:4]
+    brands = Brand.objects.all()[:12]
+    latest_products = (
+        Product.objects.filter(is_active=True)
+        .select_related("category", "brand")
+        .order_by("-created_at")[:8]
+    )
+    discounted_products = (
+        Product.objects.filter(is_active=True, discount_price__isnull=False)
+        .select_related("category", "brand")
+        .order_by("-created_at")[:8]
+    )
+    popular_products = (
+        Product.objects.filter(is_active=True, rating__gt=0)
+        .select_related("category", "brand")
+        .order_by("-rating", "-created_at")[:4]
+    )
+
+    cart_count = 0
+    if request.user.is_authenticated:
+        cart_count = sum(
+            CartItem.objects.filter(cart__user=request.user)
+            .values_list("quantity", flat=True)
+        )
 
     return render(request, "index.html", {
         "categories": categories,
+        "brands": brands,
         "latest_products": latest_products,
         "discounted_products": discounted_products,
         "popular_products": popular_products,
+        "cart_count": cart_count,
     })
 
 
